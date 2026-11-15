@@ -1881,5 +1881,49 @@ renderAll();
   loadFromCloud();
 })();
 </script>
+  <script>
+(function() {
+  // === CHOISIS TON MOT DE PASSE ICI ===
+  const MOT_DE_PASSE = "Flotte2026!";
+  const SESSION_KEY = "flotte_auth_ok";
+
+  // Si déjà déverrouillé sur cet onglet/appareil, on laisse passer
+  if (sessionStorage.getItem(SESSION_KEY) === "1") return;
+
+  // On masque immédiatement tout le contenu de la page
+  const masque = document.createElement("div");
+  masque.id = "lockScreen";
+  masque.style.cssText = "position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:999999;font-family:sans-serif;";
+  masque.innerHTML = `
+    <div style="background:#ffffff;padding:32px;border-radius:12px;width:90%;max-width:360px;text-align:center;box-shadow:0 20px 25px -5px rgba(0,0,0,0.3);">
+      <div style="font-size:2rem;margin-bottom:8px;">🔒</div>
+      <h2 style="margin:0 0 8px;color:#1e293b;font-size:1.25rem;">Accès Restreint</h2>
+      <p style="margin:0 0 20px;color:#64748b;font-size:0.9rem;">Gestion de Flotte Automobile</p>
+      <input type="password" id="pwdInput" placeholder="Mot de passe" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd5e1;border-radius:8px;font-size:1rem;margin-bottom:12px;outline:none;">
+      <button id="pwdBtn" style="width:100%;padding:12px;background:#2563eb;color:#ffffff;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;">Déverrouiller</button>
+      <p id="pwdErr" style="color:#dc2626;font-size:0.85rem;margin:12px 0 0;display:none;">Mot de passe incorrect.</p>
+    </div>
+  `;
+  document.body.appendChild(masque);
+
+  function verifier() {
+    const val = document.getElementById("pwdInput").value;
+    if (val === MOT_DE_PASSE) {
+      sessionStorage.setItem(SESSION_KEY, "1");
+      masque.remove();
+    } else {
+      document.getElementById("pwdErr").style.display = "block";
+      document.getElementById("pwdInput").value = "";
+      document.getElementById("pwdInput").focus();
+    }
+  }
+
+  document.getElementById("pwdBtn").onclick = verifier;
+  document.getElementById("pwdInput").onkeydown = function(e) {
+    if (e.key === "Enter") verifier();
+  };
+  setTimeout(() => document.getElementById("pwdInput").focus(), 100);
+})();
+</script>
 </body>
 </html>

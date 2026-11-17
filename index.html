@@ -105,6 +105,94 @@
   }
   input.cell-input:focus { outline: 2px solid var(--primary-light); background: #fff; }
 
+
+  /* Détails Mensuels : Volets figés (en-tête + colonnes clés) & Navigation horizontale flottante */
+  .details-scroll-box {
+    max-height: 74vh;
+    overflow: auto;
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    scroll-behavior: smooth;
+  }
+  .details-scroll-box table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .details-scroll-box thead th {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--primary);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+  }
+  /* Figer également les 2 premières colonnes (Mois et Véhicule) lors du défilement horizontal */
+  .details-scroll-box th:first-child,
+  .details-scroll-box td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 12;
+  }
+  .details-scroll-box thead th:first-child {
+    z-index: 25;
+  }
+  .details-scroll-box td:first-child {
+    background: #ffffff;
+  }
+  .details-scroll-box tr.total-row td:first-child {
+    background: #e2efda;
+  }
+  .details-scroll-box tr.month-header td {
+    position: sticky;
+    left: 0;
+    z-index: 11;
+    background: #e8eef5;
+  }
+  .details-scroll-box tr.inactive-row td:first-child {
+    background: #f8fafc;
+  }
+
+  /* Barre flottante de navigation Gauche / Droite */
+  .h-scroll-controls {
+    position: fixed;
+    bottom: 22px;
+    right: 26px;
+    z-index: 90;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: rgba(30, 41, 59, 0.92);
+    backdrop-filter: blur(6px);
+    padding: 8px 12px;
+    border-radius: 999px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.22);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  #details.active .h-scroll-controls {
+    display: flex;
+  }
+  .h-scroll-btn {
+    background: #2e75b6;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 7px 13px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: 0.15s;
+  }
+  .h-scroll-btn:hover {
+    background: #3b82f6;
+    transform: scale(1.03);
+  }
+  .h-scroll-btn:active {
+    transform: scale(0.97);
+  }
+
   /* Sections */
   .section { display: none; }
   .section.active { display: block; }
@@ -247,9 +335,17 @@
       <p style="font-size:0.85rem; color:var(--muted); margin-bottom:12px;">
         Les lignes grisées correspondent aux mois précédant la <b>date de mise en service</b> du véhicule (charges fixes et jours dispo automatiquement à 0). Le nettoyage (colonne jaune) est modifiable directement.
       </p>
-      <div class="table-wrap">
+      <div class="details-scroll-box" id="detailsScrollBox">
         <table id="detailsTable"></table>
       </div>
+    </div>
+
+    <!-- Boutons flottants accessibles n'importe où sur l'écran pour défiler gauche / droite -->
+    <div class="h-scroll-controls" title="Défilement horizontal rapide du tableau">
+      <button type="button" class="h-scroll-btn" onclick="scrollDetailsX(-9999)" title="Tout à gauche">⏮ Début</button>
+      <button type="button" class="h-scroll-btn" onclick="scrollDetailsX(-320)" title="Défiler vers la gauche">◀ Gauche</button>
+      <button type="button" class="h-scroll-btn" onclick="scrollDetailsX(320)" title="Défiler vers la droite">Droite ▶</button>
+      <button type="button" class="h-scroll-btn" onclick="scrollDetailsX(9999)" title="Tout à droite">Fin ⏭</button>
     </div>
   </section>
 
@@ -1564,6 +1660,31 @@ function exportCSV() {
   a.download = `Export_Flotte_${db.year}.csv`;
   a.click();
 }
+
+
+function scrollDetailsX(delta) {
+  const box = document.getElementById("detailsScrollBox");
+  if (!box) return;
+  if (Math.abs(delta) >= 9000) {
+    box.scrollTo({ left: delta < 0 ? 0 : box.scrollWidth, behavior: "smooth" });
+  } else {
+    box.scrollBy({ left: delta, behavior: "smooth" });
+  }
+}
+
+document.addEventListener("keydown", function(e) {
+  const detSection = document.getElementById("details");
+  if (!detSection || !detSection.classList.contains("active")) return;
+  const tag = (document.activeElement && document.activeElement.tagName) || "";
+  if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+  if (e.key === "ArrowRight") {
+    e.preventDefault();
+    scrollDetailsX(260);
+  } else if (e.key === "ArrowLeft") {
+    e.preventDefault();
+    scrollDetailsX(-260);
+  }
+});
 
 // Démarrage initial + chargement Cloud
 renderAll();

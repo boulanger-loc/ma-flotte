@@ -1925,5 +1925,93 @@ renderAll();
   }
 })();
 </script>
+  <!-- MODULE POURCENTAGES SUR LE CAMEMBERT -->
+<script>
+(function() {
+  const originalRenderCharts = window.renderCharts;
+
+  // Plugin léger pour écrire le pourcentage directement sur chaque part du camembert
+  const piePercentagePlugin = {
+    id: "piePercentagePlugin",
+    afterDatasetsDraw(chart) {
+      if (chart.canvas.id !== "chartPlateformes") return;
+      const { ctx, data } = chart;
+      const dataset = data.datasets[0];
+      const total = dataset.data.reduce((a, b) => a + b, 0);
+      if (total <= 0) return;
+
+      ctx.save();
+      ctx.font = "bold 13px 'Segoe UI', sans-serif";
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      chart.getDatasetMeta(0).data.forEach((arc, index) => {
+        const val = dataset.data[index];
+        const pct = ((val / total) * 100).toFixed(1);
+        if (Number(pct) >= 5) { // Affiche sur la part si >= 5 % pour rester lisible
+          const pos = arc.tooltipPosition();
+          ctx.fillText(pct + " %", pos.x, pos.y);
+        }
+      });
+      ctx.restore();
+    }
+  };
+
+  window.renderCharts = function(dataCA, dataChg, dataBen, totTuro, totGA) {
+    // Exécute le rendu normal des autres graphiques
+    if (typeof originalRenderCharts === "function") {
+      originalRenderCharts(dataCA, dataChg, dataBen, totTuro, totGA);
+    }
+
+    // Reconstruit le camembert avec les pourcentages (légende + survol + parts)
+    const ctx2 = document.getElementById("chartPlateformes");
+    if (!ctx2 || typeof Chart === "undefined") return;
+
+    if (window.chartPlateformesInstance) {
+      window.chartPlateformesInstance.destroy();
+    }
+
+    const total = (totTuro || 0) + (totGA || 0);
+    const pctTuro = total > 0 ? ((totTuro / total) * 100).toFixed(1) : "0.0";
+    const pctGA = total > 0 ? ((totGA / total) * 100).toFixed(1) : "0.0";
+
+    window.chartPlateformesInstance = new Chart(ctx2, {
+      type: "doughnut",
+      data: {
+        labels: [
+          `Turo (${pctTuro} %)`,
+          `Getaround (${pctGA} %)`
+        ],
+        datasets: [{
+          data: [Number(totTuro.toFixed(2)), Number(totGA.toFixed(2))],
+          backgroundColor: ["#7030a0", "#0099cc"],
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const val = context.parsed || 0;
+                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : "0.0";
+                return ` ${val.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} € (${pct} %)`;
+              }
+            }
+          }
+        }
+      },
+      plugins: [piePercentagePlugin]
+    });
+  };
+
+  // Rafraîchit immédiatement l'affichage
+  if (typeof renderAll === "function") renderAll();
+})();
+</script>
 </body>
 </html>

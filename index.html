@@ -8,6 +8,8 @@
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <!-- Chart.js pour les graphiques dynamiques -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<!-- Supabase JS v2 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --primary: #1f4e79;
@@ -30,7 +32,7 @@
   /* Sidebar */
   aside {
     width: 270px; background: var(--primary); color: #fff; display: flex; flex-direction: column;
-    padding: 20px 15px; position: fixed; height: 100vh; overflow-y: auto;
+    padding: 20px 15px; position: fixed; height: 100vh; overflow-y: auto; z-index: 50;
   }
   aside h1 { font-size: 1.2rem; margin-bottom: 5px; letter-spacing: 0.5px; }
   aside .subtitle { font-size: 0.8rem; color: #cbd5e1; margin-bottom: 22px; }
@@ -41,6 +43,10 @@
   }
   .nav-btn:hover, .nav-btn.active { background: rgba(255,255,255,0.16); color: #fff; font-weight: 600; }
   .sidebar-footer { margin-top: auto; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column; gap: 7px; }
+  .cloud-status {
+    font-size: 0.78rem; padding: 7px 10px; border-radius: 7px;
+    background: rgba(255,255,255,0.12); color: #f1f5f9; text-align: center; font-weight: 600;
+  }
 
   /* Main */
   main { margin-left: 270px; flex: 1; padding: 28px; max-width: calc(100vw - 270px); }
@@ -60,6 +66,12 @@
   .btn-ga { background: var(--getaround); color: #fff; }
   .btn-danger { background: var(--danger); color: #fff; }
   .btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
+
+  /* Alerts */
+  .alert-banner { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .alert-item { padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+  .alert-warn { background: #fef3c7; color: #92400e; border: 1px solid #fbbf24; }
 
   /* Cards & KPIs */
   .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
@@ -126,26 +138,44 @@
   .drop-box.excel-box { border-color: #a3cfbb; background: #f2fbf6; }
   .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 700; }
   .badge-ok { background: #dcfce7; color: #166534; }
+  .badge-warn { background: #fef3c7; color: #92400e; }
+  .badge-danger { background: #fee2e2; color: #991b1b; }
+
+  /* Mobile */
+  .mobile-bar { display: none; }
   @media (max-width: 950px) {
-    aside { position: relative; width: 100%; height: auto; }
-    main { margin-left: 0; max-width: 100%; }
     body { flex-direction: column; }
+    .mobile-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--primary); color: #fff; padding: 12px 16px; position: sticky; top: 0; z-index: 60;
+    }
+    .mobile-bar button { background: rgba(255,255,255,0.18); border: none; color: #fff; padding: 8px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    aside { position: relative; width: 100%; height: auto; display: none; padding-top: 10px; }
+    aside.mobile-open { display: flex; }
+    aside h1, aside .subtitle { display: none; }
+    main { margin-left: 0; max-width: 100%; padding: 16px; }
     .charts-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 
-<aside>
+<div class="mobile-bar">
+  <span style="font-weight:700; font-size:1.05rem;">🚗 Flotte Manager</span>
+  <button onclick="document.getElementById('sidebar').classList.toggle('mobile-open')">☰ Menu</button>
+</div>
+
+<aside id="sidebar">
   <h1>🚗 Flotte Manager</h1>
-  <div class="subtitle">Suivi Turo & Getaround • Données figées</div>
+  <div class="subtitle">Suivi Turo & Getaround • Cloud Sync</div>
   <button class="nav-btn active" onclick="showTab('dashboard', this)">📊 Tableau de Bord</button>
   <button class="nav-btn" onclick="showTab('details', this)">📅 Détails Mensuels</button>
-  <button class="nav-btn" onclick="showTab('depenses', this)">🔧 Dépenses par Véhicule</button>
+  <button class="nav-btn" onclick="showTab('depenses', this)">🔧 Dépenses & Entretien</button>
   <button class="nav-btn" onclick="showTab('rentabilite', this)">💰 Rentabilité & ROI (Figé)</button>
   <button class="nav-btn" onclick="showTab('imports', this)">📥 Imports Excel / CSV</button>
 
   <div class="sidebar-footer">
+    <div id="cloudStatus" class="cloud-status">☁️ Connexion Cloud...</div>
     <button class="btn btn-excel" onclick="document.getElementById('excelFile').click()">📗 Importer mon Excel (.xlsm)</button>
     <input type="file" id="excelFile" accept=".xlsm,.xlsx,.xls" style="display:none" onchange="handleImportExcel(event)">
     <button class="btn btn-primary" onclick="openAddModal()">➕ Ajouter un Véhicule</button>
@@ -161,8 +191,9 @@
   <section id="dashboard" class="section active">
     <div class="header-bar">
       <h2>Tableau de Bord & Synthèse Annuelle</h2>
-      <div style="display:flex; gap:10px; align-items:center;">
-        <button class="btn btn-excel" onclick="document.getElementById('excelFile').click()">📗 Charger mon fichier Excel (.xlsm)</button>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <button class="btn btn-outline" onclick="forceSyncNow()" title="Forcer la synchronisation PC / Téléphone">🔄 Synchroniser</button>
+        <button class="btn btn-excel" onclick="document.getElementById('excelFile').click()">📗 Charger Excel (.xlsm)</button>
         <select id="yearSelect" onchange="changeYear(this.value)" style="padding:8px 12px; border-radius:6px; border:1px solid var(--border); font-weight:600;">
           <option value="2025">Année 2025</option>
           <option value="2026" selected>Année 2026</option>
@@ -171,6 +202,7 @@
       </div>
     </div>
 
+    <div id="dashAlerts" class="alert-banner"></div>
     <div class="kpi-grid" id="dashKpis"></div>
 
     <!-- GRAPHIQUES PRINCIPAUX -->
@@ -223,7 +255,7 @@
   <!-- 3. DÉPENSES PAR VÉHICULE -->
   <section id="depenses" class="section">
     <div class="header-bar">
-      <h2>Gestion des Dépenses & Charges par Véhicule</h2>
+      <h2>Gestion des Dépenses, Compteur & Alertes</h2>
       <select id="depVehSelect" onchange="renderDepenses()" style="padding:9px 14px; border-radius:7px; border:1px solid var(--border); font-weight:600; min-width:240px;"></select>
     </div>
     <div id="depensesContent"></div>
@@ -269,7 +301,7 @@
         <div>
           <h3 style="color:var(--turo); margin-bottom:8px;">🟣 Export Turo (.csv / .xlsx)</h3>
           <p style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">
-            Sélectionne ton export Turo (CSV ou Excel). La détection des plaques ignore automatiquement les tirets, espaces et parenthèses.
+            Sélectionne ton export Turo (CSV ou Excel). La détection des plaques et kilomètres ignore automatiquement les tirets et parenthèses.
           </p>
         </div>
         <div>
@@ -283,7 +315,7 @@
         <div>
           <h3 style="color:var(--getaround); margin-bottom:8px;">🔵 Export Getaround (.xlsx / .csv)</h3>
           <p style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">
-            Sélectionne ton export Getaround (Excel .xlsx, .xls ou .csv). Les jours et montants nets sont ventilés par mois automatiquement.
+            Sélectionne ton export Getaround (Excel .xlsx, .xls ou .csv). Les jours, montants nets et km (colonne I) sont ventilés automatiquement.
           </p>
         </div>
         <div>
@@ -313,6 +345,10 @@
       <input type="date" id="newDate" value="2026-01-01">
     </div>
     <div class="form-group">
+      <label>Kilométrage initial au compteur (km)</label>
+      <input type="number" id="newKm" value="0" step="1">
+    </div>
+    <div class="form-group">
       <label>Coût d'achat (€) — Figé</label>
       <input type="number" id="newAchat" value="0" step="0.01">
     </div>
@@ -332,6 +368,52 @@
 </div>
 
 <script>
+// ============================================================================
+// 0. CONFIGURATION SÉCURITÉ & CLOUD SUPABASE
+// ============================================================================
+const MOT_DE_PASSE = "Flotte2026!";
+const SUPABASE_URL = "https://iluphzfdxwcbmjcrdtdi.supabase.co";
+const SUPABASE_KEY = "sb_publishable_2l8o5VxcmPqBuCNERP2oIw_EhEx9Gwl";
+const COMPTE_ID = "flotte_principale";
+const SESSION_KEY = "flotte_auth_ok";
+
+// Écran de verrouillage par mot de passe au démarrage
+(function initLockScreen() {
+  if (sessionStorage.getItem(SESSION_KEY) === "1") return;
+  const masque = document.createElement("div");
+  masque.id = "lockScreen";
+  masque.style.cssText = "position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:999999;font-family:sans-serif;";
+  masque.innerHTML = `
+    <div style="background:#ffffff;padding:32px;border-radius:12px;width:90%;max-width:360px;text-align:center;box-shadow:0 20px 25px -5px rgba(0,0,0,0.3);">
+      <div style="font-size:2rem;margin-bottom:8px;">🔒</div>
+      <h2 style="margin:0 0 8px;color:#1e293b;font-size:1.25rem;">Accès Restreint</h2>
+      <p style="margin:0 0 20px;color:#64748b;font-size:0.9rem;">Gestion de Flotte Automobile</p>
+      <input type="password" id="pwdInput" placeholder="Mot de passe" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd5e1;border-radius:8px;font-size:1rem;margin-bottom:12px;outline:none;">
+      <button id="pwdBtn" style="width:100%;padding:12px;background:#2563eb;color:#ffffff;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;">Déverrouiller</button>
+      <p id="pwdErr" style="color:#dc2626;font-size:0.85rem;margin:12px 0 0;display:none;">Mot de passe incorrect.</p>
+    </div>
+  `;
+  document.body.appendChild(masque);
+
+  function verifier() {
+    const val = document.getElementById("pwdInput").value;
+    if (val === MOT_DE_PASSE) {
+      sessionStorage.setItem(SESSION_KEY, "1");
+      masque.remove();
+    } else {
+      document.getElementById("pwdErr").style.display = "block";
+      document.getElementById("pwdInput").value = "";
+      document.getElementById("pwdInput").focus();
+    }
+  }
+  document.getElementById("pwdBtn").onclick = verifier;
+  document.getElementById("pwdInput").onkeydown = e => { if (e.key === "Enter") verifier(); };
+  setTimeout(() => document.getElementById("pwdInput").focus(), 100);
+})();
+
+// ============================================================================
+// 1. DONNÉES & SYNCHRONISATION SUPABASE
+// ============================================================================
 const MOIS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
 const STORAGE_KEY = "flotte_manager_data_v2";
 
@@ -344,11 +426,95 @@ let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
 let chartMensuelInstance = null;
 let chartPlateformesInstance = null;
 let chartVehiculesInstance = null;
+let syncTimer = null;
+
+const sb = (window.supabase && SUPABASE_URL.startsWith("http") && SUPABASE_KEY)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+  : null;
+
+function setCloudStatus(txt) {
+  const el = document.getElementById("cloudStatus");
+  if (el) el.innerText = txt;
+}
+
+async function pushToCloud() {
+  if (!sb) return;
+  setCloudStatus("⏳ Enregistrement Cloud...");
+  const { error } = await sb
+    .from("flotte_sync")
+    .upsert({ id: COMPTE_ID, data: db, updated_at: new Date().toISOString() });
+
+  if (error) {
+    setCloudStatus("⚠️ Erreur Cloud : " + error.message);
+  } else {
+    const heure = new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    setCloudStatus(`☁️ Synchronisé (${heure})`);
+  }
+}
+
+async function loadFromCloud() {
+  if (!sb) {
+    setCloudStatus("💻 Mode local uniquement");
+    return;
+  }
+  setCloudStatus("☁️ Connexion Cloud...");
+  const { data, error } = await sb
+    .from("flotte_sync")
+    .select("data, updated_at")
+    .eq("id", COMPTE_ID)
+    .maybeSingle();
+
+  if (error) {
+    setCloudStatus("⚠️ Cloud hors-ligne : " + error.message);
+    return;
+  }
+
+  if (data && data.data && Array.isArray(data.data.vehicles) && data.data.vehicles.length > 0) {
+    db = data.data;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    renderAll();
+    const heure = new Date(data.updated_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    setCloudStatus(`☁️ Synchronisé (${heure})`);
+  } else if (db.vehicles.length > 0) {
+    // Base locale existante sur ce PC : on l'envoie vers Supabase pour la rendre visible sur mobile
+    await pushToCloud();
+  } else {
+    setCloudStatus("☁️ Connecté (base vide)");
+  }
+}
+
+function forceSyncNow() {
+  if (db.vehicles.length > 0) {
+    pushToCloud();
+  } else {
+    loadFromCloud();
+  }
+}
 
 function saveDB() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+  if (sb) {
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(pushToCloud, 600);
+  }
 }
 
+if (sb) {
+  sb.channel("flotte-realtime")
+    .on("postgres_changes", { event: "*", schema: "public", table: "flotte_sync", filter: `id=eq.${COMPTE_ID}` }, payload => {
+      if (payload.new && payload.new.data) {
+        db = payload.new.data;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+        renderAll();
+        setCloudStatus("🔄 Mis à jour en direct");
+      }
+    })
+    .subscribe();
+}
+
+// ============================================================================
+// 2. UTILITAIRES & CALCULS MÉTIER
+// ============================================================================
 function nettoyerImmat(str) {
   return (str || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
@@ -378,17 +544,13 @@ function getLigneMensuelle(veh, year, monthIdx) {
   const key = `${ym}_${veh.id}`;
   const stored = db.mensuel[key] || { turo: 0, ga: 0, nettoyage: 0, joursLoues: 0 };
 
-  const joursDispo = stored.joursDispoOverride !== undefined
-    ? Number(stored.joursDispoOverride)
-    : getJoursDispoMois(veh, year, monthIdx);
-
+  const joursDispo = getJoursDispoMois(veh, year, monthIdx);
   const estActifCeMois = joursDispo > 0;
 
   const caTuro = Number(stored.turo) || 0;
   const caGA = Number(stored.ga) || 0;
   const caTotal = caTuro + caGA;
 
-  // Charges fixes à 0 € si le véhicule n'est pas encore en service ce mois-ci
   const assurance = estActifCeMois ? (Number(veh.fraisFixes.assurance) || 0) : 0;
   const boitierLogiciel = estActifCeMois
     ? ((Number(veh.fraisFixes.boitier) || 0) + (Number(veh.fraisFixes.logiciel) || 0))
@@ -401,7 +563,11 @@ function getLigneMensuelle(veh, year, monthIdx) {
 
   const chargesTotal = assurance + entretien + nettoyage + boitierLogiciel;
   const benefice = caTotal - chargesTotal;
-  const joursLoues = Number(stored.joursLoues) || 0;
+
+  const joursLoues = (stored.joursTuro !== undefined || stored.joursGA !== undefined)
+    ? (Number(stored.joursTuro || 0) + Number(stored.joursGA || 0))
+    : (Number(stored.joursLoues) || 0);
+
   const tauxOcc = joursDispo > 0 ? joursLoues / joursDispo : 0;
 
   return {
@@ -410,8 +576,32 @@ function getLigneMensuelle(veh, year, monthIdx) {
   };
 }
 
+function getKmTotalVehicule(veh) {
+  const kmInit = Number(veh.kmInitial) || 0;
+  const kmLogs = veh.kmTrips || {};
+  const kmParcourus = Object.values(kmLogs).reduce((acc, val) => acc + (Number(val) || 0), 0);
+  return kmInit + kmParcourus;
+}
+
+function getAlertesVehicule(veh) {
+  const kmActuel = getKmTotalVehicule(veh);
+  const aujourdhui = new Date();
+  return (veh.alertesConfig || []).map(al => {
+    const kmRestant = al.intervalleKm > 0 ? (Number(al.dernierKm) + Number(al.intervalleKm) - kmActuel) : null;
+    let joursRestants = null;
+    if (al.intervalleMois > 0 && al.derniereDate) {
+      const dtEcheance = new Date(al.derniereDate + "T00:00:00");
+      dtEcheance.setMonth(dtEcheance.getMonth() + Number(al.intervalleMois));
+      joursRestants = Math.round((dtEcheance - aujourdhui) / (1000 * 60 * 60 * 24));
+    }
+    const urgent = (kmRestant !== null && kmRestant <= 0) || (joursRestants !== null && joursRestants <= 0);
+    const proche = !urgent && ((kmRestant !== null && kmRestant <= 1000) || (joursRestants !== null && joursRestants <= 30));
+    return { ...al, kmRestant, joursRestants, urgent, proche };
+  });
+}
+
 // ============================================================================
-// IMPORTATION COMPLÈTE DU FICHIER EXCEL EXISTANT (.XLSM / .XLSX)
+// 3. IMPORTATION FICHIER EXCEL EXISTANT (.XLSM / .XLSX)
 // ============================================================================
 function handleImportExcel(event) {
   const file = event.target.files[0];
@@ -463,6 +653,9 @@ function handleImportExcel(event) {
               modele: modele,
               immat: immat,
               dateService: `${db.year}-01-01`,
+              kmInitial: 0,
+              kmTrips: {},
+              alertesConfig: [],
               achat: 0,
               carteGrise: 0,
               revente: 0,
@@ -484,7 +677,6 @@ function handleImportExcel(event) {
         }
       }
 
-      // Onglets Dep [IMMAT]
       newVehiclesMap.forEach((veh) => {
         const immatClean = nettoyerImmat(veh.immat);
         const sheetName = workbook.SheetNames.find(name => {
@@ -521,7 +713,6 @@ function handleImportExcel(event) {
         }
       });
 
-      // Onglet Rentabilité Globale
       const wsRent = workbook.Sheets["Rentabilité Globale"];
       if (wsRent) {
         const rowsRent = XLSX.utils.sheet_to_json(wsRent, { header: 1, defval: "" });
@@ -551,7 +742,6 @@ function handleImportExcel(event) {
         }
       }
 
-      // Préservation des montants et dates de mise en service déjà réglés
       newVehiclesMap.forEach((newV, key) => {
         const oldV = db.vehicles.find(o => nettoyerImmat(o.immat) === key);
         if (oldV) {
@@ -559,6 +749,9 @@ function handleImportExcel(event) {
           if (newV.carteGrise === 0 && oldV.carteGrise > 0) newV.carteGrise = oldV.carteGrise;
           if (newV.revente === 0 && oldV.revente > 0) newV.revente = oldV.revente;
           if (oldV.dateService) newV.dateService = oldV.dateService;
+          if (oldV.kmInitial) newV.kmInitial = oldV.kmInitial;
+          if (oldV.kmTrips) newV.kmTrips = oldV.kmTrips;
+          if (oldV.alertesConfig) newV.alertesConfig = oldV.alertesConfig;
         }
       });
 
@@ -580,13 +773,14 @@ function handleImportExcel(event) {
 }
 
 // ============================================================================
-// NAVIGATION & AFFICHAGE
+// 4. NAVIGATION & RENDUS PRINCIPAUX
 // ============================================================================
 function showTab(tabId, btn) {
   document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
   document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
   document.getElementById(tabId).classList.add("active");
   if (btn) btn.classList.add("active");
+  document.getElementById("sidebar").classList.remove("mobile-open");
   renderAll();
 }
 
@@ -605,7 +799,25 @@ function renderAll() {
   renderRentabilite();
 }
 
-// 1. TABLEAU DE BORD, SYNTHÈSE & GRAPHIQUES
+function renderAlerts() {
+  const box = document.getElementById("dashAlerts");
+  if (!box) return;
+  let html = "";
+  db.vehicles.forEach(v => {
+    getAlertesVehicule(v).forEach(a => {
+      if (a.urgent || a.proche) {
+        const cls = a.urgent ? "alert-danger" : "alert-warn";
+        const icon = a.urgent ? "🚨 ENTRETIEN DÉPASSÉ" : "⚠️ ENTRETIEN PROCHE";
+        const detailKm = a.kmRestant !== null ? `${a.kmRestant} km restants` : "";
+        const detailTemps = a.joursRestants !== null ? `${a.joursRestants} jours restants` : "";
+        const sep = (detailKm && detailTemps) ? " • " : "";
+        html += `<div class="alert-item ${cls}"><span>${icon} — <b>${v.modele} (${v.immat})</b> : ${a.nom}</span><span>${detailKm}${sep}${detailTemps}</span></div>`;
+      }
+    });
+  });
+  box.innerHTML = html;
+}
+
 function renderDashboard() {
   const year = db.year;
   let totCA = 0, totChg = 0, totBen = 0, totJours = 0, totDispo = 0;
@@ -662,6 +874,7 @@ function renderDashboard() {
     </tbody>
   `;
 
+  renderAlerts();
   renderCharts(dataCA, dataChg, dataBen, totTuroYear, totGAYear);
 }
 
@@ -676,36 +889,12 @@ function renderCharts(dataCA, dataChg, dataBen, totTuro, totGA) {
       data: {
         labels: MOIS.map(m => m.slice(0, 4) + "."),
         datasets: [
-          {
-            type: "line",
-            label: "Bénéfice Net (€)",
-            data: dataBen,
-            borderColor: "#2e7559",
-            backgroundColor: "#2e7559",
-            borderWidth: 3,
-            tension: 0.3,
-            pointRadius: 4
-          },
-          {
-            label: "Chiffre d'Affaires (€)",
-            data: dataCA,
-            backgroundColor: "rgba(46, 117, 182, 0.85)",
-            borderRadius: 4
-          },
-          {
-            label: "Charges (€)",
-            data: dataChg,
-            backgroundColor: "rgba(220, 53, 69, 0.7)",
-            borderRadius: 4
-          }
+          { type: "line", label: "Bénéfice Net (€)", data: dataBen, borderColor: "#2e7559", backgroundColor: "#2e7559", borderWidth: 3, tension: 0.3, pointRadius: 4 },
+          { label: "Chiffre d'Affaires (€)", data: dataCA, backgroundColor: "rgba(46, 117, 182, 0.85)", borderRadius: 4 },
+          { label: "Charges (€)", data: dataChg, backgroundColor: "rgba(220, 53, 69, 0.7)", borderRadius: 4 }
         ]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: "top" } },
-        scales: { y: { beginAtZero: true } }
-      }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "top" } }, scales: { y: { beginAtZero: true } } }
     });
   }
 
@@ -716,27 +905,16 @@ function renderCharts(dataCA, dataChg, dataBen, totTuro, totGA) {
       type: "doughnut",
       data: {
         labels: ["Turo (€)", "Getaround (€)"],
-        datasets: [{
-          data: [Number(totTuro.toFixed(2)), Number(totGA.toFixed(2))],
-          backgroundColor: ["#7030a0", "#0099cc"],
-          borderWidth: 2
-        }]
+        datasets: [{ data: [Number(totTuro.toFixed(2)), Number(totGA.toFixed(2))], backgroundColor: ["#7030a0", "#0099cc"], borderWidth: 2 }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: "bottom" } }
-      }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
     });
   }
 
   const ctx3 = document.getElementById("chartVehicules");
   if (ctx3) {
     if (chartVehiculesInstance) chartVehiculesInstance.destroy();
-    const vehLabels = [];
-    const vehCABar = [];
-    const vehBenBar = [];
-
+    const vehLabels = [], vehCABar = [], vehBenBar = [];
     db.vehicles.forEach(v => {
       let vCA = 0, vChg = 0;
       for (let m = 0; m < 12; m++) {
@@ -754,32 +932,18 @@ function renderCharts(dataCA, dataChg, dataBen, totTuro, totGA) {
       data: {
         labels: vehLabels,
         datasets: [
-          {
-            label: "CA Annuel (€)",
-            data: vehCABar,
-            backgroundColor: "rgba(31, 78, 121, 0.8)",
-            borderRadius: 5
-          },
-          {
-            label: "Bénéfice Net Exploitation (€)",
-            data: vehBenBar,
-            backgroundColor: "rgba(46, 117, 89, 0.85)",
-            borderRadius: 5
-          }
+          { label: "CA Annuel (€)", data: vehCABar, backgroundColor: "rgba(31, 78, 121, 0.8)", borderRadius: 5 },
+          { label: "Bénéfice Net Exploitation (€)", data: vehBenBar, backgroundColor: "rgba(46, 117, 89, 0.85)", borderRadius: 5 }
         ]
       },
-      options: {
-        indexAxis: "y",
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: "top" } },
-        scales: { x: { beginAtZero: true } }
-      }
+      options: { indexAxis: "y", responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "top" } }, scales: { x: { beginAtZero: true } } }
     });
   }
 }
 
-// 2. DÉTAILS MENSUELS
+// ============================================================================
+// 5. DÉTAILS MENSUELS
+// ============================================================================
 function renderDetails() {
   const year = db.year;
   if (db.vehicles.length === 0) {
@@ -850,7 +1014,9 @@ function updateNettoyage(key, val) {
   renderAll();
 }
 
-// 3. DÉPENSES PAR VÉHICULE & DATE DE MISE EN SERVICE
+// ============================================================================
+// 6. DÉPENSES, KILOMÉTRAGE & ALERTES PAR VÉHICULE
+// ============================================================================
 function populateDepSelect() {
   const sel = document.getElementById("depVehSelect");
   const current = sel.value;
@@ -862,20 +1028,27 @@ function renderDepenses() {
   const vehId = document.getElementById("depVehSelect").value;
   const veh = db.vehicles.find(v => v.id === vehId);
   const container = document.getElementById("depensesContent");
-  if (!veh) { container.innerHTML = "<div class='card'><p>Aucun véhicule dans la flotte. Importez votre fichier Excel ou ajoutez un véhicule.</p></div>"; return; }
+  if (!veh) { container.innerHTML = "<div class='card'><p>Aucun véhicule dans la flotte.</p></div>"; return; }
 
   const totFixe = (Number(veh.fraisFixes.assurance) || 0) + (Number(veh.fraisFixes.boitier) || 0) + (Number(veh.fraisFixes.logiciel) || 0);
+  const kmActuel = getKmTotalVehicule(veh);
+  const alertes = getAlertesVehicule(veh);
 
   container.innerHTML = `
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
-        <h3>1. Paramètres & Coûts Fixes Mensuels — ${veh.modele} (${veh.immat})</h3>
-        <div style="display:flex; align-items:center; gap:12px;">
+        <h3>1. Paramètres, Kilométrage & Coûts Fixes — ${veh.modele} (${veh.immat})</h3>
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
           <label style="font-size:0.85rem; font-weight:600; color:var(--primary);">
             📅 Mise en service :
-            <input type="date" value="${veh.dateService || `${db.year}-01-01`}" onchange="updateDateService('${veh.id}', this.value)" style="padding:6px 9px; border:1px solid var(--border); border-radius:6px; background:var(--editable); font-weight:600; margin-left:4px;">
+            <input type="date" value="${veh.dateService || `${db.year}-01-01`}" onchange="updateDateService('${veh.id}', this.value)" style="padding:6px 9px; border:1px solid var(--border); border-radius:6px; background:var(--editable); font-weight:600;">
           </label>
-          <button class="btn btn-danger" onclick="deleteVehicle('${veh.id}')">🗑️ Supprimer ce véhicule</button>
+          <label style="font-size:0.85rem; font-weight:600; color:var(--primary);">
+            🛣️ Compteur initial (km) :
+            <input type="number" value="${veh.kmInitial || 0}" onchange="updateKmInitial('${veh.id}', this.value)" style="width:100px; padding:6px 9px; border:1px solid var(--border); border-radius:6px; background:var(--editable); font-weight:600; text-align:right;">
+          </label>
+          <span class="badge badge-ok">Compteur estimé : ${kmActuel.toLocaleString("fr-FR")} km</span>
+          <button class="btn btn-danger" onclick="deleteVehicle('${veh.id}')">🗑️ Supprimer</button>
         </div>
       </div>
       <div class="table-wrap">
@@ -892,7 +1065,42 @@ function renderDepenses() {
     </div>
 
     <div class="card">
-      <h3>2. Suivi Entretien & Dépenses Ponctuelles</h3>
+      <h3>2. Alertes d'Entretien Programmées (Km & Temps)</h3>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+        <input type="text" id="alNom" placeholder="Ex: Vidange, Révision, Contrôle Technique" style="padding:8px; border:1px solid var(--border); border-radius:6px; flex:1; min-width:180px;">
+        <input type="number" id="alIntKm" placeholder="Intervalle km (ex: 15000)" style="padding:8px; border:1px solid var(--border); border-radius:6px; width:165px;">
+        <input type="number" id="alIntMois" placeholder="Intervalle mois (ex: 12)" style="padding:8px; border:1px solid var(--border); border-radius:6px; width:165px;">
+        <input type="number" id="alDerKm" placeholder="Km au dernier" value="${kmActuel}" style="padding:8px; border:1px solid var(--border); border-radius:6px; width:145px;">
+        <input type="date" id="alDerDate" value="${new Date().toISOString().slice(0,10)}" style="padding:8px; border:1px solid var(--border); border-radius:6px;">
+        <button class="btn btn-primary" onclick="addAlerteConfig('${veh.id}')">🔔 Ajouter alerte</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Entretien</th><th>Règle Km</th><th>Règle Temps</th><th>Statut / Échéance</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${alertes.map(a => {
+              const badgeCls = a.urgent ? "badge-danger" : (a.proche ? "badge-warn" : "badge-ok");
+              const statutTxt = a.urgent ? "À FAIRE IMMÉDIATEMENT" : (a.proche ? "Bientôt dû" : "OK");
+              return `
+                <tr>
+                  <td><b>${a.nom}</b></td>
+                  <td>${a.intervalleKm > 0 ? `Tous les ${a.intervalleKm} km (reste ${a.kmRestant} km)` : "-"}</td>
+                  <td>${a.intervalleMois > 0 ? `Tous les ${a.intervalleMois} mois (reste ${a.joursRestants} j)` : "-"}</td>
+                  <td><span class="badge ${badgeCls}">${statutTxt}</span></td>
+                  <td>
+                    <button class="btn btn-success" style="padding:4px 8px; font-size:0.75rem;" onclick="resetAlerte('${veh.id}', '${a.id}')">✅ Effectué aujourd'hui</button>
+                    <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="delAlerte('${veh.id}', '${a.id}')">Suppr.</button>
+                  </td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>3. Suivi Entretien & Dépenses Ponctuelles (Modifiables)</h3>
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
         <input type="date" id="entDate" value="${db.year}-01-15" style="padding:8px; border:1px solid var(--border); border-radius:6px;">
         <input type="text" id="entType" placeholder="Type (ex: Entretien, Pneus)" style="padding:8px; border:1px solid var(--border); border-radius:6px;">
@@ -902,15 +1110,14 @@ function renderDepenses() {
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Date</th><th>Mois</th><th>Type d'Intervention</th><th>Garage / Description</th><th>Montant TTC</th><th>Action</th></tr></thead>
+          <thead><tr><th>Date</th><th>Type d'Intervention</th><th>Garage / Description</th><th>Montant TTC (€)</th><th>Actions</th></tr></thead>
           <tbody>
             ${(veh.entretiens || []).map(e => `
               <tr>
-                <td>${e.date}</td>
-                <td>${e.date.slice(0,7)}</td>
-                <td>${e.type}</td>
-                <td>${e.desc}</td>
-                <td><b>${fmtEur(e.montant)}</b></td>
+                <td><input type="date" value="${e.date}" onchange="editEntretien('${veh.id}', '${e.id}', 'date', this.value)" style="padding:4px; border:1px solid var(--border); border-radius:4px;"></td>
+                <td><input type="text" value="${e.type}" onchange="editEntretien('${veh.id}', '${e.id}', 'type', this.value)" style="padding:4px; border:1px solid var(--border); border-radius:4px; width:140px;"></td>
+                <td><input type="text" value="${e.desc}" onchange="editEntretien('${veh.id}', '${e.id}', 'desc', this.value)" style="padding:4px; border:1px solid var(--border); border-radius:4px; width:100%;"></td>
+                <td><input class="cell-input" type="number" step="0.01" value="${e.montant}" onchange="editEntretien('${veh.id}', '${e.id}', 'montant', this.value)"></td>
                 <td><button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="delEntretien('${veh.id}', '${e.id}')">Suppr.</button></td>
               </tr>
             `).join("")}
@@ -923,19 +1130,49 @@ function renderDepenses() {
 
 function updateDateService(vehId, val) {
   const v = db.vehicles.find(x => x.id === vehId);
-  if (v) {
-    v.dateService = val;
-    Object.keys(db.mensuel).forEach(k => {
-      if (k.endsWith("_" + vehId)) delete db.mensuel[k].joursDispoOverride;
-    });
-    saveDB();
-    renderAll();
-  }
+  if (v) { v.dateService = val; saveDB(); renderAll(); }
+}
+
+function updateKmInitial(vehId, val) {
+  const v = db.vehicles.find(x => x.id === vehId);
+  if (v) { v.kmInitial = parseFloat(val) || 0; saveDB(); renderAll(); }
 }
 
 function updateFixe(vehId, field, val) {
   const v = db.vehicles.find(x => x.id === vehId);
   if (v) { v.fraisFixes[field] = parseFloat(val) || 0; saveDB(); renderAll(); }
+}
+
+function addAlerteConfig(vehId) {
+  const v = db.vehicles.find(x => x.id === vehId);
+  const nom = document.getElementById("alNom").value.trim();
+  const intervalleKm = parseInt(document.getElementById("alIntKm").value, 10) || 0;
+  const intervalleMois = parseInt(document.getElementById("alIntMois").value, 10) || 0;
+  const dernierKm = parseInt(document.getElementById("alDerKm").value, 10) || 0;
+  const derniereDate = document.getElementById("alDerDate").value;
+  if (!nom || (intervalleKm <= 0 && intervalleMois <= 0)) return alert("Saisis un nom et au moins un intervalle en km ou en mois.");
+  if (!v.alertesConfig) v.alertesConfig = [];
+  v.alertesConfig.push({ id: "al_" + Date.now(), nom, intervalleKm, intervalleMois, dernierKm, derniereDate });
+  saveDB();
+  renderAll();
+}
+
+function resetAlerte(vehId, alId) {
+  const v = db.vehicles.find(x => x.id === vehId);
+  const al = (v.alertesConfig || []).find(a => a.id === alId);
+  if (al) {
+    al.dernierKm = getKmTotalVehicule(v);
+    al.derniereDate = new Date().toISOString().slice(0, 10);
+    saveDB();
+    renderAll();
+  }
+}
+
+function delAlerte(vehId, alId) {
+  const v = db.vehicles.find(x => x.id === vehId);
+  v.alertesConfig = (v.alertesConfig || []).filter(a => a.id !== alId);
+  saveDB();
+  renderAll();
 }
 
 function addEntretien(vehId) {
@@ -950,6 +1187,17 @@ function addEntretien(vehId) {
   renderAll();
 }
 
+function editEntretien(vehId, entId, field, val) {
+  const v = db.vehicles.find(x => x.id === vehId);
+  const ent = (v.entretiens || []).find(e => e.id === entId);
+  if (!ent) return;
+  ent[field] = field === "montant" ? (parseFloat(val) || 0) : val;
+  saveDB();
+  renderDashboard();
+  renderDetails();
+  renderRentabilite();
+}
+
 function delEntretien(vehId, entId) {
   const v = db.vehicles.find(x => x.id === vehId);
   v.entretiens = v.entretiens.filter(e => e.id !== entId);
@@ -957,7 +1205,9 @@ function delEntretien(vehId, entId) {
   renderAll();
 }
 
-// 4. RENTABILITÉ GLOBALE & ROI (PRIX FIGÉS)
+// ============================================================================
+// 7. RENTABILITÉ GLOBALE & ROI (PRIX FIGÉS)
+// ============================================================================
 function renderRentabilite() {
   const year = db.year;
   let gTuro = 0, gGA = 0, gCA = 0, gChg = 0, gJL = 0, gJD = 0, gAchat = 0, gCG = 0, gRev = 0;
@@ -1037,14 +1287,12 @@ function renderRentabilite() {
 
 function updateFixedAsset(vehId, field, val) {
   const v = db.vehicles.find(x => x.id === vehId);
-  if (v) {
-    v[field] = parseFloat(val) || 0;
-    saveDB();
-    renderRentabilite();
-  }
+  if (v) { v[field] = parseFloat(val) || 0; saveDB(); renderRentabilite(); }
 }
 
-// 5. AJOUT / SUPPRESSION VÉHICULE
+// ============================================================================
+// 8. AJOUT / SUPPRESSION VÉHICULE
+// ============================================================================
 function openAddModal() { document.getElementById("addModal").classList.add("open"); }
 function closeAddModal() { document.getElementById("addModal").classList.remove("open"); }
 
@@ -1052,6 +1300,7 @@ function saveNewVehicle() {
   const modele = document.getElementById("newModele").value.trim().toUpperCase();
   const immat = document.getElementById("newImmat").value.trim().toUpperCase();
   const dateService = document.getElementById("newDate").value || "2026-01-01";
+  const kmInitial = parseFloat(document.getElementById("newKm").value) || 0;
   const achat = parseFloat(document.getElementById("newAchat").value) || 0;
   const carteGrise = parseFloat(document.getElementById("newCG").value) || 0;
   const revente = parseFloat(document.getElementById("newRevente").value) || 0;
@@ -1060,7 +1309,8 @@ function saveNewVehicle() {
 
   db.vehicles.push({
     id: "veh_" + Date.now(),
-    modele, immat, dateService, achat, carteGrise, revente,
+    modele, immat, dateService, kmInitial, kmTrips: {}, alertesConfig: [],
+    achat, carteGrise, revente,
     fraisFixes: { assurance: 26.51, boitier: 25.00, logiciel: 14.90 },
     entretiens: []
   });
@@ -1072,21 +1322,21 @@ function saveNewVehicle() {
 function deleteVehicle(vehId) {
   const veh = db.vehicles.find(v => v.id === vehId);
   if (!veh) return;
-
   db.vehicles = db.vehicles.filter(v => v.id !== vehId);
   Object.keys(db.mensuel).forEach(key => {
-    if (key.endsWith("_" + vehId)) {
-      delete db.mensuel[key];
-    }
+    if (key.endsWith("_" + vehId)) delete db.mensuel[key];
   });
-
   saveDB();
   renderAll();
 }
 
-// 6. PARSING EXCEL / CSV & IMPORTS TURO / GETAROUND
+// ============================================================================
+// 9. PARSING & IMPORTS TURO / GETAROUND
+// ============================================================================
 function parseCSV(text) {
-  const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
+  const lines = text.split(/
+?
+/).filter(l => l.trim() !== "");
   const sep = (lines[0] && lines[0].split(";").length > lines[0].split(",").length) ? ";" : ",";
   return lines.map(line => {
     const res = [];
@@ -1161,18 +1411,27 @@ function handleImportTuro(event) {
 
   lireFichierTableau(file, (rows) => {
     Object.keys(db.mensuel).forEach(k => {
-      if (k.startsWith(String(db.year))) { db.mensuel[k].turo = 0; }
+      if (k.startsWith(String(db.year))) {
+        db.mensuel[k].turo = 0;
+        db.mensuel[k].joursTuro = 0;
+        db.mensuel[k].joursLoues = 0;
+      }
     });
+
+    const headers = (rows[0] || []).map(h => String(h || "").toLowerCase());
+    let kmColIdx = headers.findIndex(h => h.includes("distance") || h.includes("kilom") || h.includes("km") || h.includes("odom"));
 
     let count = 0;
     for (let r = 1; r < rows.length; r++) {
       const f = rows[r];
       if (!f || f.length < 15) continue;
+      const tripId = String(f[0] || `turo_${r}`).trim();
       const vehBrut = String(f[2] || "");
       const dtDep = parseDateExcelOuStr(f[6]);
       const status = String(f[10] || "").toUpperCase();
       const jours = parseInt(f[14], 10) || 0;
       const montant = parseMontant(f[46] !== undefined && f[46] !== "" ? f[46] : f[f.length - 1]);
+      const kmTrajet = kmColIdx !== -1 ? parseMontant(f[kmColIdx]) : 0;
 
       if (status.includes("ANNULA") || status.includes("CANCEL")) continue;
       if (!dtDep || dtDep.getFullYear() !== db.year) continue;
@@ -1188,15 +1447,20 @@ function handleImportTuro(event) {
       const veh = findVehicleByImmatOrName(immat, vehBrut);
       if (veh) {
         const key = `${ym}_${veh.id}`;
-        if (!db.mensuel[key]) db.mensuel[key] = { turo: 0, ga: 0, nettoyage: 0, joursLoues: 0 };
+        if (!db.mensuel[key]) db.mensuel[key] = { turo: 0, ga: 0, nettoyage: 0, joursTuro: 0, joursGA: 0 };
         db.mensuel[key].turo += montant;
-        db.mensuel[key].joursLoues += jours;
+        db.mensuel[key].joursTuro = (db.mensuel[key].joursTuro || 0) + jours;
+
+        if (kmTrajet > 0) {
+          if (!veh.kmTrips) veh.kmTrips = {};
+          veh.kmTrips["TURO_" + tripId] = kmTrajet;
+        }
         count++;
       }
     }
     saveDB();
     renderAll();
-    document.getElementById("turoLog").innerText = `✅ ${count} réservations Turo (${file.name}) importées avec succès.`;
+    document.getElementById("turoLog").innerText = `✅ ${count} réservations Turo (${file.name}) importées.`;
     event.target.value = "";
   });
 }
@@ -1207,7 +1471,11 @@ function handleImportGetaround(event) {
 
   lireFichierTableau(file, (rows) => {
     Object.keys(db.mensuel).forEach(k => {
-      if (k.startsWith(String(db.year))) { db.mensuel[k].ga = 0; }
+      if (k.startsWith(String(db.year))) {
+        db.mensuel[k].ga = 0;
+        db.mensuel[k].joursGA = 0;
+        db.mensuel[k].joursLoues = 0;
+      }
     });
 
     const seenLocs = new Set();
@@ -1216,10 +1484,11 @@ function handleImportGetaround(event) {
       const f = rows[r];
       if (!f || f.length < 11) continue;
 
-      const numLoc = String(f[0] || "").trim();
+      const numLoc = String(f[0] || `ga_${r}`).trim();
       const immat = nettoyerImmat(String(f[1] || ""));
       const dtDep = parseDateExcelOuStr(f[2]);
       const dtFin = parseDateExcelOuStr(f[3]);
+      const kmParcouru = parseMontant(f[8]);
       const montant = parseMontant(f[10]);
 
       if (!immat || !dtDep || dtDep.getFullYear() !== db.year) continue;
@@ -1228,7 +1497,7 @@ function handleImportGetaround(event) {
       const veh = findVehicleByImmatOrName(immat, "");
       if (veh) {
         const key = `${ym}_${veh.id}`;
-        if (!db.mensuel[key]) db.mensuel[key] = { turo: 0, ga: 0, nettoyage: 0, joursLoues: 0 };
+        if (!db.mensuel[key]) db.mensuel[key] = { turo: 0, ga: 0, nettoyage: 0, joursTuro: 0, joursGA: 0 };
         db.mensuel[key].ga += montant;
 
         if (numLoc && !seenLocs.has(numLoc)) {
@@ -1238,19 +1507,25 @@ function handleImportGetaround(event) {
             const diff = Math.round((dtFin - dtDep) / (1000 * 60 * 60 * 24));
             if (diff > 0) jours = diff;
           }
-          db.mensuel[key].joursLoues += jours;
+          db.mensuel[key].joursGA = (db.mensuel[key].joursGA || 0) + jours;
+          if (kmParcouru > 0) {
+            if (!veh.kmTrips) veh.kmTrips = {};
+            veh.kmTrips["GA_" + numLoc] = kmParcouru;
+          }
         }
         count++;
       }
     }
     saveDB();
     renderAll();
-    document.getElementById("gaLog").innerText = `✅ ${count} lignes Getaround (${file.name}) importées avec succès.`;
+    document.getElementById("gaLog").innerText = `✅ ${count} lignes Getaround (${file.name}) importées.`;
     event.target.value = "";
   });
 }
 
-// 7. SAUVEGARDE JSON & EXPORT EXCEL (CSV)
+// ============================================================================
+// 10. SAUVEGARDE JSON & EXPORT EXCEL (CSV)
+// ============================================================================
 function backupJSON() {
   const blob = new Blob([JSON.stringify(db, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
@@ -1277,653 +1552,25 @@ function restoreJSON(event) {
 }
 
 function exportCSV() {
-  let csv = "Mois;Vehicule;Immatriculation;CA Turo;CA Getaround;Total CA;Charges;Benefice Net;Jours Loues;Jours Dispo\n";
+  let csv = "Mois;Vehicule;Immatriculation;CA Turo;CA Getaround;Total CA;Charges;Benefice Net;Jours Loues;Jours Dispo
+";
   for (let m = 0; m < 12; m++) {
     db.vehicles.forEach(v => {
       const l = getLigneMensuelle(v, db.year, m);
-      csv += `${MOIS[m]};${v.modele};${v.immat};${l.caTuro.toFixed(2)};${l.caGA.toFixed(2)};${l.caTotal.toFixed(2)};${l.chargesTotal.toFixed(2)};${l.benefice.toFixed(2)};${l.joursLoues};${l.joursDispo}\n`;
+      csv += `${MOIS[m]};${v.modele};${v.immat};${l.caTuro.toFixed(2)};${l.caGA.toFixed(2)};${l.caTotal.toFixed(2)};${l.chargesTotal.toFixed(2)};${l.benefice.toFixed(2)};${l.joursLoues};${l.joursDispo}
+`;
     });
   }
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `Export_Flotte_${db.year}.csv`;
   a.click();
 }
 
-// Démarrage
+// Démarrage initial + chargement Cloud
 renderAll();
-</script>
-<style>
-  .alert-banner { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-  .alert-item { padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
-  .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
-  .alert-warn { background: #fef3c7; color: #92400e; border: 1px solid #fbbf24; }
-  .badge-warn { background: #fef3c7; color: #92400e; }
-  .badge-danger { background: #fee2e2; color: #991b1b; }
-</style>
-
-<script>
-(function() {
-  // 1. Création automatique de la bannière d'alertes sur le Tableau de Bord
-  const dashSection = document.getElementById("dashboard");
-  const dashKpis = document.getElementById("dashKpis");
-  if (dashSection && dashKpis && !document.getElementById("dashAlerts")) {
-    const alertDiv = document.createElement("div");
-    alertDiv.id = "dashAlerts";
-    alertDiv.className = "alert-banner";
-    dashSection.insertBefore(alertDiv, dashKpis);
-  }
-
-  // 2. Calcul du kilométrage total par véhicule
-  window.getKmTotalVehicule = function(veh) {
-    const kmInit = Number(veh.kmInitial) || 0;
-    const kmLogs = veh.kmTrips || {};
-    const kmParcourus = Object.values(kmLogs).reduce((acc, val) => acc + (Number(val) || 0), 0);
-    return kmInit + kmParcourus;
-  };
-
-  // 3. Calcul et affichage des alertes d'entretien (Km & Temps)
-  window.getAlertesVehicule = function(veh) {
-    const kmActuel = getKmTotalVehicule(veh);
-    const aujourdhui = new Date();
-    return (veh.alertesConfig || []).map(al => {
-      const kmRestant = al.intervalleKm > 0 ? (Number(al.dernierKm) + Number(al.intervalleKm) - kmActuel) : null;
-      let joursRestants = null;
-      if (al.intervalleMois > 0 && al.derniereDate) {
-        const dtEcheance = new Date(al.derniereDate + "T00:00:00");
-        dtEcheance.setMonth(dtEcheance.getMonth() + Number(al.intervalleMois));
-        joursRestants = Math.round((dtEcheance - aujourdhui) / (1000 * 60 * 60 * 24));
-      }
-      const urgent = (kmRestant !== null && kmRestant <= 0) || (joursRestants !== null && joursRestants <= 0);
-      const proche = !urgent && ((kmRestant !== null && kmRestant <= 1000) || (joursRestants !== null && joursRestants <= 30));
-      return { ...al, kmRestant, joursRestants, urgent, proche };
-    });
-  };
-
-  window.renderAlerts = function() {
-    const box = document.getElementById("dashAlerts");
-    if (!box) return;
-    let html = "";
-    db.vehicles.forEach(v => {
-      getAlertesVehicule(v).forEach(a => {
-        if (a.urgent || a.proche) {
-          const cls = a.urgent ? "alert-danger" : "alert-warn";
-          const icon = a.urgent ? "🚨 ENTRETIEN DÉPASSÉ" : "⚠️ ENTRETIEN PROCHE";
-          const detailKm = a.kmRestant !== null ? `${a.kmRestant} km restants` : "";
-          const detailTemps = a.joursRestants !== null ? `${a.joursRestants} jours restants` : "";
-          const sep = (detailKm && detailTemps) ? " • " : "";
-          html += `<div class="alert-item ${cls}"><span>${icon} — <b>${v.modele} (${v.immat})</b> : ${a.nom}</span><span>${detailKm}${sep}${detailTemps}</span></div>`;
-        }
-      });
-    });
-    box.innerHTML = html;
-  };
-
-  // On branche les alertes sur le rendu du Tableau de Bord
-  const origRenderDashboard = window.renderDashboard;
-  window.renderDashboard = function() {
-    origRenderDashboard();
-    renderAlerts();
-  };
-
-  // 4. Surcharge de l'import Turo (avec détection automatique des km dans le CSV)
-  window.handleImportTuro = function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    lireFichierTableau(file, (rows) => {
-      Object.keys(db.mensuel).forEach(k => {
-        if (k.startsWith(String(db.year))) { db.mensuel[k].turo = 0; }
-      });
-
-      const headers = (rows[0] || []).map(h => String(h || "").toLowerCase());
-      let kmColIdx = headers.findIndex(h => h.includes("distance") || h.includes("kilom") || h.includes("km") || h.includes("odom"));
-
-      let count = 0;
-      for (let r = 1; r < rows.length; r++) {
-        const f = rows[r];
-        if (!f || f.length < 15) continue;
-        const tripId = String(f[0] || `turo_${r}`).trim();
-        const vehBrut = String(f[2] || "");
-        const dtDep = parseDateExcelOuStr(f[6]);
-        const status = String(f[10] || "").toUpperCase();
-        const jours = parseInt(f[14], 10) || 0;
-        const montant = parseMontant(f[46] !== undefined && f[46] !== "" ? f[46] : f[f.length - 1]);
-        const kmTrajet = kmColIdx !== -1 ? parseMontant(f[kmColIdx]) : 0;
-
-        if (status.includes("ANNULA") || status.includes("CANCEL")) continue;
-        if (!dtDep || dtDep.getFullYear() !== db.year) continue;
-
-        let immat = "";
-        const hashIdx = vehBrut.indexOf("#");
-        if (hashIdx !== -1) {
-          const endIdx = vehBrut.indexOf(")", hashIdx);
-          immat = nettoyerImmat(endIdx !== -1 ? vehBrut.slice(hashIdx + 1, endIdx) : vehBrut.slice(hashIdx + 1));
-        }
-
-        const ym = `${dtDep.getFullYear()}-${String(dtDep.getMonth() + 1).padStart(2, "0")}`;
-        const veh = findVehicleByImmatOrName(immat, vehBrut);
-        if (veh) {
-          const key = `${ym}_${veh.id}`;
-          if (!db.mensuel[key]) db.mensuel[key] = { turo: 0, ga: 0, nettoyage: 0, joursLoues: 0 };
-          db.mensuel[key].turo += montant;
-          db.mensuel[key].joursLoues += jours;
-
-          if (kmTrajet > 0) {
-            if (!veh.kmTrips) veh.kmTrips = {};
-            veh.kmTrips["TURO_" + tripId] = kmTrajet;
-          }
-          count++;
-        }
-      }
-      saveDB();
-      renderAll();
-      document.getElementById("turoLog").innerText = `✅ ${count} réservations Turo (${file.name}) importées.`;
-      event.target.value = "";
-    });
-  };
-
-  // 5. Surcharge de l'import Getaround (lecture colonne I = index 8 pour les km)
-  window.handleImportGetaround = function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    lireFichierTableau(file, (rows) => {
-      Object.keys(db.mensuel).forEach(k => {
-        if (k.startsWith(String(db.year))) { db.mensuel[k].ga = 0; }
-      });
-
-      const seenLocs = new Set();
-      let count = 0;
-      for (let r = 1; r < rows.length; r++) {
-        const f = rows[r];
-        if (!f || f.length < 11) continue;
-
-        const numLoc = String(f[0] || `ga_${r}`).trim();
-        const immat = nettoyerImmat(String(f[1] || ""));
-        const dtDep = parseDateExcelOuStr(f[2]);
-        const dtFin = parseDateExcelOuStr(f[3]);
-        const kmParcouru = parseMontant(f[8]); // Colonne I
-        const montant = parseMontant(f[10]);
-
-        if (!immat || !dtDep || dtDep.getFullYear() !== db.year) continue;
-
-        const ym = `${dtDep.getFullYear()}-${String(dtDep.getMonth() + 1).padStart(2, "0")}`;
-        const veh = findVehicleByImmatOrName(immat, "");
-        if (veh) {
-          const key = `${ym}_${veh.id}`;
-          if (!db.mensuel[key]) db.mensuel[key] = { turo: 0, ga: 0, nettoyage: 0, joursLoues: 0 };
-          db.mensuel[key].ga += montant;
-
-          if (numLoc && !seenLocs.has(numLoc)) {
-            seenLocs.add(numLoc);
-            let jours = 1;
-            if (dtFin) {
-              const diff = Math.round((dtFin - dtDep) / (1000 * 60 * 60 * 24));
-              if (diff > 0) jours = diff;
-            }
-            db.mensuel[key].joursLoues += jours;
-            if (kmParcouru > 0) {
-              if (!veh.kmTrips) veh.kmTrips = {};
-              veh.kmTrips["GA_" + numLoc] = kmParcouru;
-            }
-          }
-          count++;
-        }
-      }
-      saveDB();
-      renderAll();
-      document.getElementById("gaLog").innerText = `✅ ${count} lignes Getaround (${file.name}) importées (km colonne I inclus).`;
-      event.target.value = "";
-    });
-  };
-
-  // 6. Surcharge de l'onglet Dépenses (Compteur, Alertes & Dépenses modifiables)
-  window.renderDepenses = function() {
-    const vehId = document.getElementById("depVehSelect").value;
-    const veh = db.vehicles.find(v => v.id === vehId);
-    const container = document.getElementById("depensesContent");
-    if (!veh) { container.innerHTML = "<div class='card'><p>Aucun véhicule dans la flotte.</p></div>"; return; }
-
-    const totFixe = (Number(veh.fraisFixes.assurance) || 0) + (Number(veh.fraisFixes.boitier) || 0) + (Number(veh.fraisFixes.logiciel) || 0);
-    const kmActuel = getKmTotalVehicule(veh);
-    const alertes = getAlertesVehicule(veh);
-
-    container.innerHTML = `
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
-          <h3>1. Paramètres, Kilométrage & Coûts Fixes — ${veh.modele} (${veh.immat})</h3>
-          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-            <label style="font-size:0.85rem; font-weight:600; color:var(--primary);">
-              📅 Mise en service :
-              <input type="date" value="${veh.dateService || `${db.year}-01-01`}" onchange="updateDateService('${veh.id}', this.value)" style="padding:6px 9px; border:1px solid var(--border); border-radius:6px; background:var(--editable); font-weight:600;">
-            </label>
-            <label style="font-size:0.85rem; font-weight:600; color:var(--primary);">
-              🛣️ Compteur initial (km) :
-              <input type="number" value="${veh.kmInitial || 0}" onchange="updateKmInitial('${veh.id}', this.value)" style="width:100px; padding:6px 9px; border:1px solid var(--border); border-radius:6px; background:var(--editable); font-weight:600; text-align:right;">
-            </label>
-            <span class="badge badge-ok">Compteur estimé : ${kmActuel.toLocaleString("fr-FR")} km</span>
-            <button class="btn btn-danger" onclick="deleteVehicle('${veh.id}')">🗑️ Supprimer</button>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Poste de Charge</th><th>Fournisseur / Notes</th><th>Montant Mensuel TTC (€)</th></tr></thead>
-            <tbody>
-              <tr><td>Assurance Flotte</td><td>Contrat Auto Pro</td><td><input class="cell-input" type="number" step="0.01" value="${veh.fraisFixes.assurance}" onchange="updateFixe('${veh.id}', 'assurance', this.value)"></td></tr>
-              <tr><td>Boîtier Connect</td><td>Abonnement Getaround / Turo</td><td><input class="cell-input" type="number" step="0.01" value="${veh.fraisFixes.boitier}" onchange="updateFixe('${veh.id}', 'boitier', this.value)"></td></tr>
-              <tr><td>Appli & Agenda / Logiciel</td><td>Outil de synchronisation fleet</td><td><input class="cell-input" type="number" step="0.01" value="${veh.fraisFixes.logiciel}" onchange="updateFixe('${veh.id}', 'logiciel', this.value)"></td></tr>
-              <tr class="total-row"><td colspan="2">TOTAL FIXE MENSUEL</td><td>${fmtEur(totFixe)}</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>2. Alertes d'Entretien Programmées (Km & Temps)</h3>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
-          <input type="text" id="alNom" placeholder="Ex: Vidange, Révision, Contrôle Technique" style="padding:8px; border:1px solid var(--border); border-radius:6px; flex:1; min-width:180px;">
-          <input type="number" id="alIntKm" placeholder="Intervalle km (ex: 15000)" style="padding:8px; border:1px solid var(--border); border-radius:6px; width:165px;">
-          <input type="number" id="alIntMois" placeholder="Intervalle mois (ex: 12)" style="padding:8px; border:1px solid var(--border); border-radius:6px; width:165px;">
-          <input type="number" id="alDerKm" placeholder="Km au dernier" value="${kmActuel}" style="padding:8px; border:1px solid var(--border); border-radius:6px; width:145px;">
-          <input type="date" id="alDerDate" value="${new Date().toISOString().slice(0,10)}" style="padding:8px; border:1px solid var(--border); border-radius:6px;">
-          <button class="btn btn-primary" onclick="addAlerteConfig('${veh.id}')">🔔 Ajouter alerte</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Entretien</th><th>Règle Km</th><th>Règle Temps</th><th>Statut / Échéance</th><th>Actions</th></tr></thead>
-            <tbody>
-              ${alertes.map(a => {
-                const badgeCls = a.urgent ? "badge-danger" : (a.proche ? "badge-warn" : "badge-ok");
-                const statutTxt = a.urgent ? "À FAIRE IMMÉDIATEMENT" : (a.proche ? "Bientôt dû" : "OK");
-                return `
-                  <tr>
-                    <td><b>${a.nom}</b></td>
-                    <td>${a.intervalleKm > 0 ? `Tous les ${a.intervalleKm} km (reste ${a.kmRestant} km)` : "-"}</td>
-                    <td>${a.intervalleMois > 0 ? `Tous les ${a.intervalleMois} mois (reste ${a.joursRestants} j)` : "-"}</td>
-                    <td><span class="badge ${badgeCls}">${statutTxt}</span></td>
-                    <td>
-                      <button class="btn btn-success" style="padding:4px 8px; font-size:0.75rem;" onclick="resetAlerte('${veh.id}', '${a.id}')">✅ Effectué aujourd'hui</button>
-                      <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="delAlerte('${veh.id}', '${a.id}')">Suppr.</button>
-                    </td>
-                  </tr>
-                `;
-              }).join("")}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>3. Suivi Entretien & Dépenses Ponctuelles (Modifiables)</h3>
-        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-          <input type="date" id="entDate" value="${db.year}-01-15" style="padding:8px; border:1px solid var(--border); border-radius:6px;">
-          <input type="text" id="entType" placeholder="Type (ex: Entretien, Pneus)" style="padding:8px; border:1px solid var(--border); border-radius:6px;">
-          <input type="text" id="entDesc" placeholder="Garage / Description" style="padding:8px; border:1px solid var(--border); border-radius:6px; flex:1;">
-          <input type="number" id="entMontant" placeholder="Montant €" step="0.01" style="padding:8px; border:1px solid var(--border); border-radius:6px; width:120px;">
-          <button class="btn btn-success" onclick="addEntretien('${veh.id}')">➕ Ajouter dépense</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Date</th><th>Type d'Intervention</th><th>Garage / Description</th><th>Montant TTC (€)</th><th>Actions</th></tr></thead>
-            <tbody>
-              ${(veh.entretiens || []).map(e => `
-                <tr>
-                  <td><input type="date" value="${e.date}" onchange="editEntretien('${veh.id}', '${e.id}', 'date', this.value)" style="padding:4px; border:1px solid var(--border); border-radius:4px;"></td>
-                  <td><input type="text" value="${e.type}" onchange="editEntretien('${veh.id}', '${e.id}', 'type', this.value)" style="padding:4px; border:1px solid var(--border); border-radius:4px; width:140px;"></td>
-                  <td><input type="text" value="${e.desc}" onchange="editEntretien('${veh.id}', '${e.id}', 'desc', this.value)" style="padding:4px; border:1px solid var(--border); border-radius:4px; width:100%;"></td>
-                  <td><input class="cell-input" type="number" step="0.01" value="${e.montant}" onchange="editEntretien('${veh.id}', '${e.id}', 'montant', this.value)"></td>
-                  <td><button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="delEntretien('${veh.id}', '${e.id}')">Suppr.</button></td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    `;
-  };
-
-  window.updateKmInitial = function(vehId, val) {
-    const v = db.vehicles.find(x => x.id === vehId);
-    if (v) { v.kmInitial = parseFloat(val) || 0; saveDB(); renderAll(); }
-  };
-
-  window.addAlerteConfig = function(vehId) {
-    const v = db.vehicles.find(x => x.id === vehId);
-    const nom = document.getElementById("alNom").value.trim();
-    const intervalleKm = parseInt(document.getElementById("alIntKm").value, 10) || 0;
-    const intervalleMois = parseInt(document.getElementById("alIntMois").value, 10) || 0;
-    const dernierKm = parseInt(document.getElementById("alDerKm").value, 10) || 0;
-    const derniereDate = document.getElementById("alDerDate").value;
-    if (!nom || (intervalleKm <= 0 && intervalleMois <= 0)) return alert("Saisis un nom et au moins un intervalle en km ou en mois.");
-    if (!v.alertesConfig) v.alertesConfig = [];
-    v.alertesConfig.push({ id: "al_" + Date.now(), nom, intervalleKm, intervalleMois, dernierKm, derniereDate });
-    saveDB();
-    renderAll();
-  };
-
-  window.resetAlerte = function(vehId, alId) {
-    const v = db.vehicles.find(x => x.id === vehId);
-    const al = (v.alertesConfig || []).find(a => a.id === alId);
-    if (al) {
-      al.dernierKm = getKmTotalVehicule(v);
-      al.derniereDate = new Date().toISOString().slice(0, 10);
-      saveDB();
-      renderAll();
-    }
-  };
-
-  window.delAlerte = function(vehId, alId) {
-    const v = db.vehicles.find(x => x.id === vehId);
-    v.alertesConfig = (v.alertesConfig || []).filter(a => a.id !== alId);
-    saveDB();
-    renderAll();
-  };
-
-  window.editEntretien = function(vehId, entId, field, val) {
-    const v = db.vehicles.find(x => x.id === vehId);
-    const ent = (v.entretiens || []).find(e => e.id === entId);
-    if (!ent) return;
-    ent[field] = field === "montant" ? (parseFloat(val) || 0) : val;
-    saveDB();
-    renderDashboard();
-    renderDetails();
-    renderRentabilite();
-  };
-
-  // Rafraîchissement immédiat
-  renderAll();
-})();
-</script>
-<script>
-(function() {
-  // 1. Calcul mensuel propre (Jours Turo + Jours Getaround séparés + Jours Dispo dynamiques)
-  window.getLigneMensuelle = function(veh, year, monthIdx) {
-    const ym = `${year}-${String(monthIdx + 1).padStart(2, "0")}`;
-    const key = `${ym}_${veh.id}`;
-    const stored = db.mensuel[key] || { turo: 0, ga: 0, nettoyage: 0, joursLoues: 0 };
-
-    // On utilise toujours le calcul dynamique basé sur la date de mise en service
-    const joursDispo = getJoursDispoMois(veh, year, monthIdx);
-    const estActifCeMois = joursDispo > 0;
-
-    const caTuro = Number(stored.turo) || 0;
-    const caGA = Number(stored.ga) || 0;
-    const caTotal = caTuro + caGA;
-
-    const assurance = estActifCeMois ? (Number(veh.fraisFixes.assurance) || 0) : 0;
-    const boitierLogiciel = estActifCeMois
-      ? ((Number(veh.fraisFixes.boitier) || 0) + (Number(veh.fraisFixes.logiciel) || 0))
-      : 0;
-
-    const entretien = (veh.entretiens || [])
-      .filter(e => e.date && e.date.startsWith(ym))
-      .reduce((acc, e) => acc + (Number(e.montant) || 0), 0);
-    const nettoyage = Number(stored.nettoyage) || 0;
-
-    const chargesTotal = assurance + entretien + nettoyage + boitierLogiciel;
-    const benefice = caTotal - chargesTotal;
-
-    // Addition propre des jours Turo et Getaround (évite l'écrasement ou le doublon)
-    const joursLoues = (stored.joursTuro !== undefined || stored.joursGA !== undefined)
-      ? (Number(stored.joursTuro || 0) + Number(stored.joursGA || 0))
-      : (Number(stored.joursLoues) || 0);
-
-    const tauxOcc = joursDispo > 0 ? joursLoues / joursDispo : 0;
-
-    return {
-      key, ym, estActifCeMois, caTuro, caGA, caTotal, assurance, entretien, nettoyage, boitierLogiciel,
-      chargesTotal, benefice, joursLoues, joursDispo, tauxOcc
-    };
-  };
-
-  // 2. Import Turo avec remise à zéro propre des jours Turo avant import
-  window.handleImportTuro = function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    lireFichierTableau(file, (rows) => {
-      Object.keys(db.mensuel).forEach(k => {
-        if (k.startsWith(String(db.year))) {
-          db.mensuel[k].turo = 0;
-          db.mensuel[k].joursTuro = 0;
-          db.mensuel[k].joursLoues = 0;
-        }
-      });
-
-      const headers = (rows[0] || []).map(h => String(h || "").toLowerCase());
-      let kmColIdx = headers.findIndex(h => h.includes("distance") || h.includes("kilom") || h.includes("km") || h.includes("odom"));
-
-      let count = 0;
-      for (let r = 1; r < rows.length; r++) {
-        const f = rows[r];
-        if (!f || f.length < 15) continue;
-        const tripId = String(f[0] || `turo_${r}`).trim();
-        const vehBrut = String(f[2] || "");
-        const dtDep = parseDateExcelOuStr(f[6]);
-        const status = String(f[10] || "").toUpperCase();
-        const jours = parseInt(f[14], 10) || 0;
-        const montant = parseMontant(f[46] !== undefined && f[46] !== "" ? f[46] : f[f.length - 1]);
-        const kmTrajet = kmColIdx !== -1 ? parseMontant(f[kmColIdx]) : 0;
-
-        if (status.includes("ANNULA") || status.includes("CANCEL")) continue;
-        if (!dtDep || dtDep.getFullYear() !== db.year) continue;
-
-        let immat = "";
-        const hashIdx = vehBrut.indexOf("#");
-        if (hashIdx !== -1) {
-          const endIdx = vehBrut.indexOf(")", hashIdx);
-          immat = nettoyerImmat(endIdx !== -1 ? vehBrut.slice(hashIdx + 1, endIdx) : vehBrut.slice(hashIdx + 1));
-        }
-
-        const ym = `${dtDep.getFullYear()}-${String(dtDep.getMonth() + 1).padStart(2, "0")}`;
-        const veh = findVehicleByImmatOrName(immat, vehBrut);
-        if (veh) {
-          const key = `${ym}_${veh.id}`;
-          if (!db.mensuel[key]) db.mensuel[key] = { turo: 0, ga: 0, nettoyage: 0, joursTuro: 0, joursGA: 0 };
-          db.mensuel[key].turo += montant;
-          db.mensuel[key].joursTuro = (db.mensuel[key].joursTuro || 0) + jours;
-
-          if (kmTrajet > 0) {
-            if (!veh.kmTrips) veh.kmTrips = {};
-            veh.kmTrips["TURO_" + tripId] = kmTrajet;
-          }
-          count++;
-        }
-      }
-      saveDB();
-      renderAll();
-      document.getElementById("turoLog").innerText = `✅ ${count} réservations Turo importées (jours recalculés sans doublon).`;
-      event.target.value = "";
-    });
-  };
-
-  // 3. Import Getaround avec remise à zéro propre des jours Getaround avant import
-  window.handleImportGetaround = function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    lireFichierTableau(file, (rows) => {
-      Object.keys(db.mensuel).forEach(k => {
-        if (k.startsWith(String(db.year))) {
-          db.mensuel[k].ga = 0;
-          db.mensuel[k].joursGA = 0;
-          db.mensuel[k].joursLoues = 0;
-        }
-      });
-
-      const seenLocs = new Set();
-      let count = 0;
-      for (let r = 1; r < rows.length; r++) {
-        const f = rows[r];
-        if (!f || f.length < 11) continue;
-
-        const numLoc = String(f[0] || `ga_${r}`).trim();
-        const immat = nettoyerImmat(String(f[1] || ""));
-        const dtDep = parseDateExcelOuStr(f[2]);
-        const dtFin = parseDateExcelOuStr(f[3]);
-        const kmParcouru = parseMontant(f[8]);
-        const montant = parseMontant(f[10]);
-
-        if (!immat || !dtDep || dtDep.getFullYear() !== db.year) continue;
-
-        const ym = `${dtDep.getFullYear()}-${String(dtDep.getMonth() + 1).padStart(2, "0")}`;
-        const veh = findVehicleByImmatOrName(immat, "");
-        if (veh) {
-          const key = `${ym}_${veh.id}`;
-          if (!db.mensuel[key]) db.mensuel[key] = { turo: 0, ga: 0, nettoyage: 0, joursTuro: 0, joursGA: 0 };
-          db.mensuel[key].ga += montant;
-
-          if (numLoc && !seenLocs.has(numLoc)) {
-            seenLocs.add(numLoc);
-            let jours = 1;
-            if (dtFin) {
-              const diff = Math.round((dtFin - dtDep) / (1000 * 60 * 60 * 24));
-              if (diff > 0) jours = diff;
-            }
-            db.mensuel[key].joursGA = (db.mensuel[key].joursGA || 0) + jours;
-            if (kmParcouru > 0) {
-              if (!veh.kmTrips) veh.kmTrips = {};
-              veh.kmTrips["GA_" + numLoc] = kmParcouru;
-            }
-          }
-          count++;
-        }
-      }
-      saveDB();
-      renderAll();
-      document.getElementById("gaLog").innerText = `✅ ${count} lignes Getaround importées (jours recalculés sans doublon).`;
-      event.target.value = "";
-    });
-  };
-
-  renderAll();
-})();
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-(function() {
-  // === REMPLACE CES 2 VALEURS PAR TES CLÉS SUPABASE ===
-  const SUPABASE_URL = https://iluphzfdxwcbmjcrdtdi.supabase.co/rest/v1/;
-  const SUPABASE_KEY = sb_publishable_2l8o5VxcmPqBuCNERP2oIw_EhEx9Gwl;
-  const COMPTE_ID = "flotte_principale"; // Identifiant unique de ta base
-
-  if (!SUPABASE_URL.startsWith("http")) return;
-
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-  // Ajout d'un indicateur de statut dans le menu latéral
-  const footer = document.querySelector(".sidebar-footer");
-  const statusBadge = document.createElement("div");
-  statusBadge.style.cssText = "font-size:0.78rem; padding:6px 10px; border-radius:6px; background:rgba(255,255,255,0.12); color:#e2e8f0; text-align:center;";
-  statusBadge.innerText = "☁️ Connexion Cloud...";
-  if (footer) footer.prepend(statusBadge);
-
-  // 1. Chargement automatique des données depuis le Cloud au démarrage
-  async function loadFromCloud() {
-    const { data, error } = await sb
-      .from("flotte_sync")
-      .select("data, updated_at")
-      .eq("id", COMPTE_ID)
-      .maybeSingle();
-
-    if (error) {
-      statusBadge.innerText = "⚠️ Cloud hors-ligne (mode local)";
-      return;
-    }
-
-    if (data && data.data) {
-      db = data.data;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-      renderAll();
-      statusBadge.innerText = "☁️ Synchronisé (" + new Date(data.updated_at).toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit"}) + ")";
-    } else {
-      // Première connexion : on envoie la base locale existante vers le Cloud
-      await pushToCloud();
-    }
-  }
-
-  // 2. Sauvegarde automatique dans le Cloud à chaque modification
-  let syncTimer = null;
-  async function pushToCloud() {
-    statusBadge.innerText = "⏳ Enregistrement Cloud...";
-    const { error } = await sb
-      .from("flotte_sync")
-      .upsert({ id: COMPTE_ID, data: db, updated_at: new Date().toISOString() });
-
-    if (error) {
-      statusBadge.innerText = "❌ Erreur de synchro Cloud";
-    } else {
-      statusBadge.innerText = "☁️ Synchronisé (" + new Date().toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit"}) + ")";
-    }
-  }
-
-  const origSaveDB = window.saveDB;
-  window.saveDB = function() {
-    origSaveDB(); // Sauvegarde locale immédiate
-    clearTimeout(syncTimer);
-    syncTimer = setTimeout(pushToCloud, 600); // Envoi vers le Cloud après 0,6s
-  };
-
-  // 3. Mise à jour en temps réel si tu modifies depuis un autre appareil ouvert en même temps
-  sb.channel("flotte-realtime")
-    .on("postgres_changes", { event: "*", schema: "public", table: "flotte_sync", filter: `id=eq.${COMPTE_ID}` }, payload => {
-      if (payload.new && payload.new.data) {
-        db = payload.new.data;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-        renderAll();
-        statusBadge.innerText = "🔄 Mis à jour depuis un autre appareil";
-      }
-    })
-    .subscribe();
-
-  loadFromCloud();
-})();
-</script>
-  <script>
-(function() {
-  // === CHOISIS TON MOT DE PASSE ICI ===
-  const MOT_DE_PASSE = "Flotte2026!";
-  const SESSION_KEY = "flotte_auth_ok";
-
-  // Si déjà déverrouillé sur cet onglet/appareil, on laisse passer
-  if (sessionStorage.getItem(SESSION_KEY) === "1") return;
-
-  // On masque immédiatement tout le contenu de la page
-  const masque = document.createElement("div");
-  masque.id = "lockScreen";
-  masque.style.cssText = "position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:999999;font-family:sans-serif;";
-  masque.innerHTML = `
-    <div style="background:#ffffff;padding:32px;border-radius:12px;width:90%;max-width:360px;text-align:center;box-shadow:0 20px 25px -5px rgba(0,0,0,0.3);">
-      <div style="font-size:2rem;margin-bottom:8px;">🔒</div>
-      <h2 style="margin:0 0 8px;color:#1e293b;font-size:1.25rem;">Accès Restreint</h2>
-      <p style="margin:0 0 20px;color:#64748b;font-size:0.9rem;">Gestion de Flotte Automobile</p>
-      <input type="password" id="pwdInput" placeholder="Mot de passe" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd5e1;border-radius:8px;font-size:1rem;margin-bottom:12px;outline:none;">
-      <button id="pwdBtn" style="width:100%;padding:12px;background:#2563eb;color:#ffffff;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;">Déverrouiller</button>
-      <p id="pwdErr" style="color:#dc2626;font-size:0.85rem;margin:12px 0 0;display:none;">Mot de passe incorrect.</p>
-    </div>
-  `;
-  document.body.appendChild(masque);
-
-  function verifier() {
-    const val = document.getElementById("pwdInput").value;
-    if (val === MOT_DE_PASSE) {
-      sessionStorage.setItem(SESSION_KEY, "1");
-      masque.remove();
-    } else {
-      document.getElementById("pwdErr").style.display = "block";
-      document.getElementById("pwdInput").value = "";
-      document.getElementById("pwdInput").focus();
-    }
-  }
-
-  document.getElementById("pwdBtn").onclick = verifier;
-  document.getElementById("pwdInput").onkeydown = function(e) {
-    if (e.key === "Enter") verifier();
-  };
-  setTimeout(() => document.getElementById("pwdInput").focus(), 100);
-})();
+loadFromCloud();
 </script>
 </body>
 </html>

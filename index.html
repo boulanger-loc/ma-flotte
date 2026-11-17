@@ -1783,5 +1783,147 @@ document.addEventListener("keydown", function(e) {
 // Démarrage initial géré par l'authentification Supabase
 renderAll();
 </script>
+  <!-- MODULE MOT DE PASSE OUBLIÉ SUPABASE -->
+<script>
+(function() {
+  // 1. Surcharge de la fenêtre de connexion pour inclure "Mot de passe oublié ?"
+  window.showAuthModal = function() {
+    if (document.getElementById("authScreen")) return;
+    const masque = document.createElement("div");
+    masque.id = "authScreen";
+    masque.style.cssText = "position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:999999;font-family:sans-serif;";
+    masque.innerHTML = `
+      <div style="background:#ffffff;padding:32px;border-radius:12px;width:90%;max-width:380px;text-align:center;box-shadow:0 20px 25px -5px rgba(0,0,0,0.3);">
+        <div style="font-size:2.2rem;margin-bottom:8px;">🚗</div>
+        <h2 style="margin:0 0 6px;color:#1e293b;font-size:1.3rem;">Flotte Gérance</h2>
+        <p style="margin:0 0 20px;color:#64748b;font-size:0.88rem;">Connectez-vous pour accéder à votre flotte</p>
+        
+        <input type="email" id="authEmail" placeholder="Adresse email" style="width:100%;box-sizing:border-box;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:0.95rem;margin-bottom:10px;outline:none;">
+        <input type="password" id="authPwd" placeholder="Mot de passe (6 car. min.)" style="width:100%;box-sizing:border-box;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:0.95rem;margin-bottom:14px;outline:none;">
+        
+        <button id="btnLogin" style="width:100%;padding:11px;background:#1f4e79;color:#ffffff;border:none;border-radius:8px;font-size:0.95rem;font-weight:600;cursor:pointer;margin-bottom:8px;">Se connecter</button>
+        <button id="btnSignup" style="width:100%;padding:10px;background:#f1f5f9;color:#1e293b;border:1px solid #cbd5e1;border-radius:8px;font-size:0.9rem;font-weight:600;cursor:pointer;">Créer un compte</button>
+        
+        <div style="margin-top:12px;">
+          <a href="#" id="btnForgotPwd" style="color:#64748b;font-size:0.84rem;text-decoration:underline;">Mot de passe oublié ?</a>
+        </div>
+
+        <p id="authMsg" style="font-size:0.85rem;margin:12px 0 0;display:none;"></p>
+      </div>
+    `;
+    document.body.appendChild(masque);
+
+    const showMsg = (txt, isErr = true) => {
+      const el = document.getElementById("authMsg");
+      el.style.display = "block";
+      el.style.color = isErr ? "#dc2626" : "#166534";
+      el.innerText = txt;
+    };
+
+    document.getElementById("btnLogin").onclick = async () => {
+      if (!sb) return showMsg("Supabase non initialisé.");
+      const email = document.getElementById("authEmail").value.trim();
+      const password = document.getElementById("authPwd").value;
+      if (!email || !password) return showMsg("Veuillez remplir l'email et le mot de passe.");
+      showMsg("Connexion en cours...", false);
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) showMsg("Erreur : " + error.message);
+    };
+
+    document.getElementById("btnSignup").onclick = async () => {
+      if (!sb) return showMsg("Supabase non initialisé.");
+      const email = document.getElementById("authEmail").value.trim();
+      const password = document.getElementById("authPwd").value;
+      if (!email || password.length < 6) return showMsg("Email valide et mot de passe de 6 caractères minimum requis.");
+      showMsg("Création du compte...", false);
+      const { data, error } = await sb.auth.signUp({ email, password });
+      if (error) showMsg("Erreur : " + error.message);
+      else if (data.user && !data.session) showMsg("Compte créé ! Vérifiez vos emails pour confirmer.", false);
+    };
+
+    document.getElementById("btnForgotPwd").onclick = async (e) => {
+      e.preventDefault();
+      if (!sb) return showMsg("Supabase non initialisé.");
+      const email = document.getElementById("authEmail").value.trim();
+      if (!email) return showMsg("Saisissez d'abord votre adresse email ci-dessus.");
+      showMsg("Envoi de l'email de récupération...", false);
+      const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + window.location.pathname
+      });
+      if (error) showMsg("Erreur : " + error.message);
+      else showMsg("Email envoyé ! Cliquez sur le lien reçu pour choisir un nouveau mot de passe.", false);
+    };
+
+    document.getElementById("authPwd").onkeydown = e => {
+      if (e.key === "Enter") document.getElementById("btnLogin").click();
+    };
+  };
+
+  // 2. Fenêtre de saisie du nouveau mot de passe après clic sur le lien email
+  function showResetPasswordModal() {
+    if (document.getElementById("resetScreen")) return;
+    const oldScreen = document.getElementById("authScreen");
+    if (oldScreen) oldScreen.remove();
+
+    const masque = document.createElement("div");
+    masque.id = "resetScreen";
+    masque.style.cssText = "position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:999999;font-family:sans-serif;";
+    masque.innerHTML = `
+      <div style="background:#ffffff;padding:32px;border-radius:12px;width:90%;max-width:380px;text-align:center;box-shadow:0 20px 25px -5px rgba(0,0,0,0.3);">
+        <div style="font-size:2rem;margin-bottom:8px;">🔐</div>
+        <h2 style="margin:0 0 6px;color:#1e293b;font-size:1.25rem;">Nouveau mot de passe</h2>
+        <p style="margin:0 0 18px;color:#64748b;font-size:0.88rem;">Choisissez un nouveau mot de passe (6 caractères minimum)</p>
+        
+        <input type="password" id="newAuthPwd" placeholder="Nouveau mot de passe" style="width:100%;box-sizing:border-box;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:0.95rem;margin-bottom:14px;outline:none;">
+        <button id="btnSaveNewPwd" style="width:100%;padding:11px;background:#1f4e79;color:#ffffff;border:none;border-radius:8px;font-size:0.95rem;font-weight:600;cursor:pointer;">Enregistrer le mot de passe</button>
+        
+        <p id="resetMsg" style="font-size:0.85rem;margin:12px 0 0;display:none;"></p>
+      </div>
+    `;
+    document.body.appendChild(masque);
+
+    document.getElementById("btnSaveNewPwd").onclick = async () => {
+      const newPassword = document.getElementById("newAuthPwd").value;
+      const msgEl = document.getElementById("resetMsg");
+      msgEl.style.display = "block";
+      if (newPassword.length < 6) {
+        msgEl.style.color = "#dc2626";
+        msgEl.innerText = "Le mot de passe doit contenir au moins 6 caractères.";
+        return;
+      }
+      msgEl.style.color = "#166534";
+      msgEl.innerText = "Mise à jour en cours...";
+      const { error } = await sb.auth.updateUser({ password: newPassword });
+      if (error) {
+        msgEl.style.color = "#dc2626";
+        msgEl.innerText = "Erreur : " + error.message;
+      } else {
+        msgEl.style.color = "#166534";
+        msgEl.innerText = "Mot de passe modifié avec succès !";
+        setTimeout(() => {
+          const scr = document.getElementById("resetScreen");
+          if (scr) scr.remove();
+        }, 1000);
+      }
+    };
+  }
+
+  // 3. Si l'écran de connexion est déjà affiché au chargement, on injecte le lien immédiatement
+  const existingScreen = document.getElementById("authScreen");
+  if (existingScreen && !document.getElementById("btnForgotPwd")) {
+    existingScreen.remove();
+    window.showAuthModal();
+  }
+
+  // 4. Détection du clic sur le lien de récupération Supabase
+  if (typeof sb !== "undefined" && sb) {
+    sb.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        showResetPasswordModal();
+      }
+    });
+  }
+})();
+</script>
 </body>
 </html>

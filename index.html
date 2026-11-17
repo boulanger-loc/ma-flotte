@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gestion de Flotte Automatisée — Turo & Getaround</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚗</text></svg>">
 <!-- SheetJS pour lecture Excel (.xlsm / .xlsx / .xls) -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <!-- Chart.js pour les graphiques dynamiques -->
@@ -1334,9 +1335,7 @@ function deleteVehicle(vehId) {
 // 9. PARSING & IMPORTS TURO / GETAROUND
 // ============================================================================
 function parseCSV(text) {
-  const lines = text.split(/
-?
-/).filter(l => l.trim() !== "");
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
   const sep = (lines[0] && lines[0].split(";").length > lines[0].split(",").length) ? ";" : ",";
   return lines.map(line => {
     const res = [];
@@ -1552,16 +1551,14 @@ function restoreJSON(event) {
 }
 
 function exportCSV() {
-  let csv = "Mois;Vehicule;Immatriculation;CA Turo;CA Getaround;Total CA;Charges;Benefice Net;Jours Loues;Jours Dispo
-";
+  let csv = "Mois;Vehicule;Immatriculation;CA Turo;CA Getaround;Total CA;Charges;Benefice Net;Jours Loues;Jours Dispo\n";
   for (let m = 0; m < 12; m++) {
     db.vehicles.forEach(v => {
       const l = getLigneMensuelle(v, db.year, m);
-      csv += `${MOIS[m]};${v.modele};${v.immat};${l.caTuro.toFixed(2)};${l.caGA.toFixed(2)};${l.caTotal.toFixed(2)};${l.chargesTotal.toFixed(2)};${l.benefice.toFixed(2)};${l.joursLoues};${l.joursDispo}
-`;
+      csv += `${MOIS[m]};${v.modele};${v.immat};${l.caTuro.toFixed(2)};${l.caGA.toFixed(2)};${l.caTotal.toFixed(2)};${l.chargesTotal.toFixed(2)};${l.benefice.toFixed(2)};${l.joursLoues};${l.joursDispo}\n`;
     });
   }
-  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `Export_Flotte_${db.year}.csv`;

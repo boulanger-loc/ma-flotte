@@ -71,6 +71,8 @@
     margin-bottom: 5px; transition: 0.2s; display: flex; align-items: center; gap: 10px;
   }
   .nav-btn:hover, .nav-btn.active { background: rgba(255,255,255,0.16); color: #fff; font-weight: 600; }
+  .nav-btn.admin-nav { background: rgba(251, 191, 36, 0.16); border: 1px solid rgba(251, 191, 36, 0.4); color: #fde68a; }
+  .nav-btn.admin-nav:hover, .nav-btn.admin-nav.active { background: rgba(251, 191, 36, 0.3); color: #fff; }
   .sidebar-footer { margin-top: auto; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column; gap: 7px; }
   .cloud-status {
     font-size: 0.78rem; padding: 7px 10px; border-radius: 7px;
@@ -126,7 +128,7 @@
   th { background: var(--primary); color: #fff; font-weight: 600; }
   tr.total-row { background: #e2efda; font-weight: 700; }
   tr.month-header { background: #e8eef5; font-weight: 700; color: var(--primary); }
-  tr.inactive-row { opacity: 0.45; background: #f8fafc; }
+  tr.inactive-row { opacity: 0.55; background: #f8fafc; }
   input.cell-input {
     width: 110px; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 5px;
     background: var(--editable); text-align: right; font-weight: 600; font-size: 0.88rem;
@@ -203,6 +205,7 @@
   .badge-ok { background: #dcfce7; color: #166534; }
   .badge-warn { background: #fef3c7; color: #92400e; }
   .badge-danger { background: #fee2e2; color: #991b1b; }
+  .badge-admin { background: #e0e7ff; color: #3730a3; }
 
   /* Auth & Reset Screens */
   .auth-overlay {
@@ -252,6 +255,8 @@
   <button class="nav-btn" onclick="showTab('depenses', this)">🔧 Dépenses & Entretien</button>
   <button class="nav-btn" onclick="showTab('rentabilite', this)">💰 Rentabilité & ROI (Figé)</button>
   <button class="nav-btn" onclick="showTab('imports', this)">📥 Imports Excel / CSV</button>
+  <!-- Bouton Back-Office visible uniquement pour l'administrateur -->
+  <button id="navAdminBtn" class="nav-btn admin-nav" style="display:none;" onclick="showTab('admin', this)">🛡️ Back-Office Utilisateurs</button>
 
   <div class="sidebar-footer">
     <div id="cloudStatus" class="cloud-status">☁️ Connexion Cloud...</div>
@@ -286,7 +291,6 @@
     <div id="dashAlerts" class="alert-banner"></div>
     <div class="kpi-grid" id="dashKpis"></div>
 
-    <!-- GRAPHIQUES PRINCIPAUX -->
     <div class="charts-grid">
       <div class="card" style="margin-bottom:0;">
         <h3>📈 Évolution Mensuelle : CA, Charges & Bénéfice Net</h3>
@@ -332,7 +336,6 @@
       </div>
     </div>
 
-    <!-- Boutons flottants accessibles n'importe où sur l'écran pour défiler gauche / droite -->
     <div class="h-scroll-controls" title="Défilement horizontal rapide du tableau">
       <button type="button" class="h-scroll-btn" onclick="scrollDetailsX(-9999)" title="Tout à gauche">⏮ Début</button>
       <button type="button" class="h-scroll-btn" onclick="scrollDetailsX(-320)" title="Défiler vers la gauche">◀ Gauche</button>
@@ -415,6 +418,29 @@
       </div>
     </div>
   </section>
+
+  <!-- 6. BACK-OFFICE ADMINISTRATION DES UTILISATEURS -->
+  <section id="admin" class="section">
+    <div class="header-bar">
+      <h2>🛡️ Back-Office — Gestion des Utilisateurs</h2>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <input type="text" id="adminSearchInput" oninput="renderAdminUsers()" placeholder="🔍 Rechercher par email..." style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; min-width:230px;">
+        <button class="btn btn-primary" onclick="loadAdminUsers()">🔄 Actualiser la liste</button>
+      </div>
+    </div>
+
+    <div class="kpi-grid" id="adminKpis"></div>
+
+    <div class="card">
+      <h3>Liste des comptes inscrits</h3>
+      <p style="font-size:0.85rem; color:var(--muted); margin-bottom:14px;">
+        Un utilisateur désactivé est immédiatement bloqué et déconnecté de l'application lors de sa prochaine action ou connexion.
+      </p>
+      <div class="table-wrap">
+        <table id="adminUsersTable"></table>
+      </div>
+    </div>
+  </section>
 </main>
 
 <!-- MODAL AJOUT VÉHICULE -->
@@ -468,6 +494,8 @@ const sb = (window.supabase && SUPABASE_URL.startsWith("http") && SUPABASE_KEY)
   : null;
 
 let currentUser = null;
+let isCurrentUserAdmin = false;
+let adminUsersCache = [];
 let realtimeChannel = null;
 
 function getStorageKey() {
@@ -503,7 +531,7 @@ function setCloudStatus(txt) {
   if (el) el.innerText = txt;
 }
 
-function showAuthModal() {
+function showAuthModal(initialErrorMsg = "") {
   if (document.getElementById("authScreen")) return;
   const masque = document.createElement("div");
   masque.id = "authScreen";
@@ -531,10 +559,13 @@ function showAuthModal() {
 
   const showMsg = (txt, isErr = true) => {
     const el = document.getElementById("authMsg");
+    if (!el) return;
     el.style.display = "block";
     el.style.color = isErr ? "#dc2626" : "#166534";
     el.innerText = txt;
   };
+
+  if (initialErrorMsg) showMsg(initialErrorMsg, true);
 
   document.getElementById("btnLogin").onclick = async () => {
     if (!sb) return showMsg("Supabase non initialisé.");
@@ -627,11 +658,40 @@ function showResetPasswordModal() {
   };
 }
 
-async function logoutUser() {
+// Vérifie si l'utilisateur est actif et s'il est administrateur
+async function verifyUserProfile(user) {
+  if (!sb || !user) return { active: true, admin: false };
+  const { data, error } = await sb
+    .from("profiles")
+    .select("is_active, is_admin")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.warn("Table profiles non détectée ou erreur :", error.message);
+    return { active: true, admin: false };
+  }
+  if (!data) {
+    // Crée le profil s'il n'existait pas encore
+    await sb.from("profiles").insert({ id: user.id, email: user.email, is_active: true, is_admin: false });
+    return { active: true, admin: false };
+  }
+  return { active: data.is_active !== false, admin: data.is_admin === true };
+}
+
+async function logoutUser(reasonMsg = "") {
   if (realtimeChannel && sb) sb.removeChannel(realtimeChannel);
+  isCurrentUserAdmin = false;
+  const adminBtn = document.getElementById("navAdminBtn");
+  if (adminBtn) adminBtn.style.display = "none";
   if (sb) await sb.auth.signOut();
   db = { year: 2026, vehicles: [], mensuel: {} };
   renderAll();
+  if (reasonMsg) {
+    const old = document.getElementById("authScreen");
+    if (old) old.remove();
+    showAuthModal(reasonMsg);
+  }
 }
 
 async function pushToCloud() {
@@ -708,33 +768,188 @@ function subscribeRealtime() {
         setCloudStatus("🔄 Mis à jour en direct");
       }
     })
+    .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${currentUser.id}` }, payload => {
+      if (payload.new && payload.new.is_active === false) {
+        logoutUser("⛔ Votre compte vient d'être désactivé par l'administrateur.");
+      }
+    })
     .subscribe();
 }
 
 if (sb) {
-  sb.auth.onAuthStateChange((event, session) => {
+  sb.auth.onAuthStateChange(async (event, session) => {
     if (event === "PASSWORD_RECOVERY") {
       showResetPasswordModal();
       return;
     }
     if (session && session.user) {
+      const status = await verifyUserProfile(session.user);
+      if (!status.active) {
+        await logoutUser("⛔ Votre compte est désactivé. Contactez l'administrateur.");
+        return;
+      }
+
       currentUser = session.user;
+      isCurrentUserAdmin = status.admin;
+
+      const adminBtn = document.getElementById("navAdminBtn");
+      if (adminBtn) adminBtn.style.display = isCurrentUserAdmin ? "flex" : "none";
+
       const screen = document.getElementById("authScreen");
       if (screen) screen.remove();
       const emailEl = document.getElementById("userEmailDisplay");
-      if (emailEl) emailEl.innerText = "👤 " + currentUser.email;
+      if (emailEl) emailEl.innerText = (isCurrentUserAdmin ? "🛡️ " : "👤 ") + currentUser.email;
 
       db = JSON.parse(localStorage.getItem(getStorageKey())) || { year: 2026, vehicles: [], mensuel: {} };
       renderAll();
       loadFromCloud();
       subscribeRealtime();
+      if (isCurrentUserAdmin) loadAdminUsers();
     } else {
       currentUser = null;
+      isCurrentUserAdmin = false;
       const emailEl = document.getElementById("userEmailDisplay");
       if (emailEl) emailEl.innerText = "";
       showAuthModal();
     }
   });
+}
+
+// ============================================================================
+// 1B. BACK-OFFICE ADMINISTRATION DES UTILISATEURS
+// ============================================================================
+async function loadAdminUsers() {
+  if (!sb || !isCurrentUserAdmin) return;
+  const tableEl = document.getElementById("adminUsersTable");
+  if (tableEl) tableEl.innerHTML = `<tbody><tr><td style="text-align:center;padding:20px;">Chargement des utilisateurs...</td></tr></tbody>`;
+
+  const [profRes, syncRes] = await Promise.all([
+    sb.from("profiles").select("id, email, is_active, is_admin, created_at").order("created_at", { ascending: false }),
+    sb.from("flotte_sync").select("id, data, updated_at")
+  ]);
+
+  if (profRes.error) {
+    if (tableEl) tableEl.innerHTML = `<tbody><tr><td style="color:#c00000;padding:16px;">Erreur SQL : ${escapeHTML(profRes.error.message)} (Vérifiez que le script SQL de la table profiles a bien été exécuté).</td></tr></tbody>`;
+    return;
+  }
+
+  const syncMap = new Map();
+  (syncRes.data || []).forEach(row => {
+    const nbVeh = (row.data && Array.isArray(row.data.vehicles)) ? row.data.vehicles.length : 0;
+    syncMap.set(row.id, { nbVeh, updatedAt: row.updated_at });
+  });
+
+  adminUsersCache = (profRes.data || []).map(p => {
+    const info = syncMap.get(p.id) || { nbVeh: 0, updatedAt: null };
+    return { ...p, nbVeh: info.nbVeh, updatedAt: info.updatedAt };
+  });
+
+  renderAdminUsers();
+}
+
+function renderAdminUsers() {
+  if (!isCurrentUserAdmin) return;
+  const query = (document.getElementById("adminSearchInput")?.value || "").trim().toLowerCase();
+  const filtered = adminUsersCache.filter(u => !query || (u.email || "").toLowerCase().includes(query));
+
+  const totalUsers = adminUsersCache.length;
+  const actifs = adminUsersCache.filter(u => u.is_active).length;
+  const desactives = totalUsers - actifs;
+  const totalVehiculesGlobal = adminUsersCache.reduce((acc, u) => acc + u.nbVeh, 0);
+
+  const kpisEl = document.getElementById("adminKpis");
+  if (kpisEl) {
+    kpisEl.innerHTML = `
+      <div class="kpi-card"><div class="label">Total Utilisateurs</div><div class="value">${totalUsers}</div></div>
+      <div class="kpi-card highlight"><div class="label">Comptes Actifs</div><div class="value">${actifs}</div></div>
+      <div class="kpi-card"><div class="label">Comptes Désactivés</div><div class="value" style="color:#c00000;">${desactives}</div></div>
+      <div class="kpi-card"><div class="label">Véhicules Cumulés</div><div class="value">${totalVehiculesGlobal}</div></div>
+    `;
+  }
+
+  const tableEl = document.getElementById("adminUsersTable");
+  if (!tableEl) return;
+
+  if (filtered.length === 0) {
+    tableEl.innerHTML = `<tbody><tr><td style="text-align:center;padding:24px;">Aucun utilisateur trouvé.</td></tr></tbody>`;
+    return;
+  }
+
+  let html = `
+    <thead>
+      <tr>
+        <th>Email Utilisateur</th>
+        <th>Rôle</th>
+        <th>Statut</th>
+        <th>Véhicules</th>
+        <th>Inscription</th>
+        <th>Dernière Synchro</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+  `;
+
+  filtered.forEach(u => {
+    const isSelf = currentUser && u.id === currentUser.id;
+    const dateCre = u.created_at ? new Date(u.created_at).toLocaleDateString("fr-FR") : "-";
+    const dateSync = u.updatedAt ? new Date(u.updatedAt).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Jamais";
+    const rowCls = u.is_active ? "" : "inactive-row";
+
+    const roleBadge = u.is_admin
+      ? `<span class="badge badge-admin">🛡️ Admin</span>`
+      : `<span class="badge" style="background:#f1f5f9;color:#475569;">Utilisateur</span>`;
+
+    const statusBadge = u.is_active
+      ? `<span class="badge badge-ok">✅ Activé</span>`
+      : `<span class="badge badge-danger">⛔ Désactivé</span>`;
+
+    let actionBtn = "";
+    if (isSelf) {
+      actionBtn = `<span style="font-size:0.8rem;color:var(--muted);">Votre compte</span>`;
+    } else if (u.is_active) {
+      actionBtn = `<button class="btn btn-danger" style="padding:5px 11px;font-size:0.8rem;" onclick="toggleUserActive('${u.id}', false)">⛔ Désactiver</button>`;
+    } else {
+      actionBtn = `<button class="btn btn-success" style="padding:5px 11px;font-size:0.8rem;" onclick="toggleUserActive('${u.id}', true)">✅ Activer</button>`;
+    }
+
+    html += `
+      <tr class="${rowCls}">
+        <td><b>${escapeHTML(u.email)}</b></td>
+        <td>${roleBadge}</td>
+        <td>${statusBadge}</td>
+        <td><b>${u.nbVeh}</b></td>
+        <td>${dateCre}</td>
+        <td>${dateSync}</td>
+        <td>${actionBtn}</td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody>`;
+  tableEl.innerHTML = html;
+}
+
+async function toggleUserActive(targetUserId, newState) {
+  if (!sb || !isCurrentUserAdmin) return;
+  const target = adminUsersCache.find(u => u.id === targetUserId);
+  if (!target) return;
+
+  const actionLabel = newState ? "activer" : "désactiver";
+  if (!confirm(`Voulez-vous vraiment ${actionLabel} le compte "${target.email}" ?`)) return;
+
+  const { error } = await sb
+    .from("profiles")
+    .update({ is_active: newState })
+    .eq("id", targetUserId);
+
+  if (error) {
+    alert("Erreur lors de la mise à jour : " + error.message);
+    return;
+  }
+
+  target.is_active = newState;
+  renderAdminUsers();
 }
 
 // ============================================================================
@@ -1012,12 +1227,14 @@ function goDashboard() {
 }
 
 function showTab(tabId, btn) {
+  if (tabId === "admin" && !isCurrentUserAdmin) return;
   document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
   document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
   document.getElementById(tabId).classList.add("active");
   if (btn) btn.classList.add("active");
   document.getElementById("sidebar").classList.remove("mobile-open");
-  renderAll();
+  if (tabId === "admin") loadAdminUsers();
+  else renderAll();
 }
 
 function changeYear(y) {
@@ -1114,7 +1331,6 @@ function renderDashboard() {
   renderCharts(dataCA, dataChg, dataBen, totTuroYear, totGAYear);
 }
 
-// Plugin pour afficher le pourcentage directement sur l'anneau Turo / Getaround
 const piePercentagePlugin = {
   id: "piePercentagePlugin",
   afterDatasetsDraw(chart) {

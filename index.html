@@ -1925,12 +1925,12 @@ renderAll();
   }
 })();
 </script>
-  <!-- MODULE POURCENTAGES SUR LE CAMEMBERT -->
+<!-- MODULE POURCENTAGES SUR LE CAMEMBERT -->
 <script>
 (function() {
   const originalRenderCharts = window.renderCharts;
 
-  // Plugin léger pour écrire le pourcentage directement sur chaque part du camembert
+  // Plugin pour afficher le pourcentage directement sur chaque part de l'anneau
   const piePercentagePlugin = {
     id: "piePercentagePlugin",
     afterDatasetsDraw(chart) {
@@ -1949,7 +1949,7 @@ renderAll();
       chart.getDatasetMeta(0).data.forEach((arc, index) => {
         const val = dataset.data[index];
         const pct = ((val / total) * 100).toFixed(1);
-        if (Number(pct) >= 5) { // Affiche sur la part si >= 5 % pour rester lisible
+        if (Number(pct) >= 5) {
           const pos = arc.tooltipPosition();
           ctx.fillText(pct + " %", pos.x, pos.y);
         }
@@ -1959,24 +1959,26 @@ renderAll();
   };
 
   window.renderCharts = function(dataCA, dataChg, dataBen, totTuro, totGA) {
-    // Exécute le rendu normal des autres graphiques
+    // 1. Génère les autres graphiques normalement
     if (typeof originalRenderCharts === "function") {
       originalRenderCharts(dataCA, dataChg, dataBen, totTuro, totGA);
     }
 
-    // Reconstruit le camembert avec les pourcentages (légende + survol + parts)
+    // 2. Détruit l'instance existante via Chart.getChart (contourne le scope 'let')
     const ctx2 = document.getElementById("chartPlateformes");
     if (!ctx2 || typeof Chart === "undefined") return;
 
-    if (window.chartPlateformesInstance) {
-      window.chartPlateformesInstance.destroy();
+    const existingChart = Chart.getChart(ctx2);
+    if (existingChart) {
+      existingChart.destroy();
     }
 
     const total = (totTuro || 0) + (totGA || 0);
     const pctTuro = total > 0 ? ((totTuro / total) * 100).toFixed(1) : "0.0";
     const pctGA = total > 0 ? ((totGA / total) * 100).toFixed(1) : "0.0";
 
-    window.chartPlateformesInstance = new Chart(ctx2, {
+    // 3. Recrée le camembert avec les pourcentages
+    new Chart(ctx2, {
       type: "doughnut",
       data: {
         labels: [
@@ -1984,7 +1986,7 @@ renderAll();
           `Getaround (${pctGA} %)`
         ],
         datasets: [{
-          data: [Number(totTuro.toFixed(2)), Number(totGA.toFixed(2))],
+          data: [Number((totTuro || 0).toFixed(2)), Number((totGA || 0).toFixed(2))],
           backgroundColor: ["#7030a0", "#0099cc"],
           borderWidth: 2
         }]
@@ -2009,8 +2011,10 @@ renderAll();
     });
   };
 
-  // Rafraîchit immédiatement l'affichage
-  if (typeof renderAll === "function") renderAll();
+  // Force la mise à jour immédiate de l'affichage
+  if (typeof renderAll === "function") {
+    renderAll();
+  }
 })();
 </script>
 </body>

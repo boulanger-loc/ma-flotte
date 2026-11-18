@@ -290,62 +290,62 @@
 <body>
 
 <div class="mobile-bar">
-  <span onclick="goDashboard()" style="font-weight:700; font-size:1.05rem; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">🚗 Flotte Gérance</span>
-  <button type="button" onclick="toggleMobileMenu()">☰ Plus</button>
+  <span data-action="go-dashboard" style="font-weight:700; font-size:1.05rem; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">🚗 Flotte Gérance</span>
+  <button type="button" data-action="toggle-mobile-menu">☰ Plus</button>
 </div>
 
 <aside id="sidebar">
   <div style="display:flex; justify-content:space-between; align-items:center;">
     <div>
-      <h1 onclick="goDashboard()">🚗 Flotte Gérance</h1>
+      <h1 data-action="go-dashboard">🚗 Flotte Gérance</h1>
       <div class="subtitle">Suivi Turo & Getaround • Cloud Sync</div>
     </div>
-    <button type="button" onclick="toggleMobileMenu()" class="mobile-bar" style="background:rgba(255,255,255,0.2); border:none; color:#fff; padding:6px 10px; border-radius:6px;">✕</button>
+    <button type="button" data-action="toggle-mobile-menu" class="mobile-bar" style="background:rgba(255,255,255,0.2); border:none; color:#fff; padding:6px 10px; border-radius:6px;">✕</button>
   </div>
 
-  <button class="nav-btn active" data-tab="dashboard" onclick="showTab('dashboard', this)"><span>📊 Tableau de Bord</span></button>
-  <button class="nav-btn" data-tab="details" onclick="showTab('details', this)"><span>📅 Détails Mensuels</span></button>
-  <button class="nav-btn" data-tab="depenses" onclick="showTab('depenses', this)">
+  <button class="nav-btn active" data-tab="dashboard"><span>📊 Tableau de Bord</span></button>
+  <button class="nav-btn" data-tab="details"><span>📅 Détails Mensuels</span></button>
+  <button class="nav-btn" data-tab="depenses">
     <span>🔧 Dépenses & Entretien</span>
     <span id="navAlertBadge" class="nav-badge-alert" style="display:none;">0</span>
   </button>
-  <button class="nav-btn" data-tab="rentabilite" onclick="showTab('rentabilite', this)"><span>💰 Rentabilité & ROI</span></button>
-  <button class="nav-btn" data-tab="imports" onclick="showTab('imports', this)"><span>📥 Imports / Sauvegardes</span></button>
-  <button id="navAdminBtn" class="nav-btn admin-nav" data-tab="admin" style="display:none;" onclick="showTab('admin', this)"><span>🛡️ Back-Office Admin</span></button>
+  <button class="nav-btn" data-tab="rentabilite"><span>💰 Rentabilité & ROI</span></button>
+  <button class="nav-btn" data-tab="imports"><span>📥 Imports / Sauvegardes</span></button>
+  <button id="navAdminBtn" class="nav-btn admin-nav" data-tab="admin" style="display:none;"><span>🛡️ Back-Office Admin</span></button>
 
   <div class="sidebar-footer">
-    <button class="btn btn-primary" onclick="openAddModal()">➕ Ajouter un Véhicule</button>
-    <button class="btn btn-excel" onclick="document.getElementById('excelFile').click()">📗 Importer Excel / CSV</button>
-    <input type="file" id="excelFile" accept=".xlsm,.xlsx,.xls,.csv" style="display:none" onchange="handleImportExcel(event)">
+    <button class="btn btn-primary" data-action="open-add-modal">➕ Ajouter un Véhicule</button>
+    <button class="btn btn-excel" data-action="trigger-excel-input">📗 Importer Excel / CSV</button>
+    <input type="file" id="excelFile" accept=".xlsm,.xlsx,.xls,.csv" style="display:none">
     <div id="cloudStatus" class="cloud-status">☁️ Connexion Cloud...</div>
     <div id="userEmailDisplay" style="font-size:0.75rem; color:#cbd5e1; text-align:center; word-break:break-all;"></div>
-    <button class="btn btn-danger" onclick="logoutUser()" style="padding:7px 10px; font-size:0.8rem;">🚪 Se déconnecter</button>
+    <button class="btn btn-danger" data-action="logout" style="padding:7px 10px; font-size:0.8rem;">🚪 Se déconnecter</button>
   </div>
 </aside>
 
 <!-- Barre de navigation rapide mobile (en bas) -->
 <nav class="mobile-bottom-nav">
-  <button class="m-nav-item active" data-tab="dashboard" onclick="showTab('dashboard', this)"><span class="ico">📊</span><span>Bord</span></button>
-  <button class="m-nav-item" data-tab="details" onclick="showTab('details', this)"><span class="ico">📅</span><span>Mois</span></button>
-  <button class="m-nav-item" data-tab="depenses" onclick="showTab('depenses', this)"><span class="ico">🔧</span><span>Frais</span></button>
-  <button class="m-nav-item" data-tab="rentabilite" onclick="showTab('rentabilite', this)"><span class="ico">💰</span><span>ROI</span></button>
-  <button class="m-nav-item" data-tab="imports" onclick="showTab('imports', this)"><span class="ico">📥</span><span>Import</span></button>
+  <button class="m-nav-item active" data-tab="dashboard"><span class="ico">📊</span><span>Bord</span></button>
+  <button class="m-nav-item" data-tab="details"><span class="ico">📅</span><span>Mois</span></button>
+  <button class="m-nav-item" data-tab="depenses"><span class="ico">🔧</span><span>Frais</span></button>
+  <button class="m-nav-item" data-tab="rentabilite"><span class="ico">💰</span><span>ROI</span></button>
+  <button class="m-nav-item" data-tab="imports"><span class="ico">📥</span><span>Import</span></button>
 </nav>
 
 <!-- Bouton flottant saisie rapide dépense -->
-<button type="button" class="fab-expense" onclick="openQuickExpenseModal()" title="Saisir rapidement une dépense ou un lavage">⚡ + Dépense rapide</button>
+<button type="button" class="fab-expense" data-action="open-quick-expense" title="Saisir rapidement une dépense ou un lavage">⚡ + Dépense rapide</button>
 
 <!-- Notification Toast -->
 <div id="toastNotif" class="toast-notif">✅ Enregistré</div>
 
-<main>
+<main id="appMain">
   <!-- 1. TABLEAU DE BORD & GRAPHIQUES -->
   <section id="dashboard" class="section active">
     <div class="header-bar">
       <h2>Tableau de Bord & Synthèse Annuelle</h2>
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-        <button class="btn btn-outline" onclick="forceSyncNow()" title="Forcer la synchronisation PC / Téléphone">🔄 Synchroniser</button>
-        <select id="yearSelect" onchange="changeYear(this.value)" style="padding:8px 12px; border-radius:6px; border:1px solid var(--border); font-weight:600;"></select>
+        <button class="btn btn-outline" data-action="force-sync" title="Forcer la synchronisation PC / Téléphone">🔄 Synchroniser</button>
+        <select id="yearSelect" style="padding:8px 12px; border-radius:6px; border:1px solid var(--border); font-weight:600;"></select>
       </div>
     </div>
 
@@ -354,8 +354,8 @@
       <h3>👋 Bienvenue sur Flotte Gérance !</h3>
       <p>Votre parc automobile est actuellement vide. Importez directement votre fichier Excel existant ou créez votre premier véhicule pour démarrer le suivi Turo & Getaround.</p>
       <div class="onboarding-actions">
-        <button class="btn btn-excel" style="padding:12px 20px; font-size:0.95rem;" onclick="document.getElementById('excelFile').click()">📗 Importer mon fichier Excel (.xlsm / .xlsx)</button>
-        <button class="btn btn-primary" style="padding:12px 20px; font-size:0.95rem;" onclick="openAddModal()">➕ Ajouter mon premier véhicule</button>
+        <button class="btn btn-excel" style="padding:12px 20px; font-size:0.95rem;" data-action="trigger-excel-input">📗 Importer mon fichier Excel (.xlsm / .xlsx)</button>
+        <button class="btn btn-primary" style="padding:12px 20px; font-size:0.95rem;" data-action="open-add-modal">➕ Ajouter mon premier véhicule</button>
       </div>
     </div>
 
@@ -398,17 +398,17 @@
   <section id="details" class="section">
     <div class="header-bar">
       <h2>Détails Mensuels par Véhicule</h2>
-      <button class="btn btn-primary" onclick="openAddModal()">➕ Ajouter un Véhicule</button>
+      <button class="btn btn-primary" data-action="open-add-modal">➕ Ajouter un Véhicule</button>
     </div>
     <div class="card">
       <div class="filter-bar">
         <label>📅 Période :
-          <select id="filterDetailMonth" onchange="renderDetails()">
+          <select id="filterDetailMonth">
             <option value="all">Tous les mois (Année complète)</option>
           </select>
         </label>
         <label>🚗 Véhicule :
-          <select id="filterDetailVeh" onchange="renderDetails()">
+          <select id="filterDetailVeh">
             <option value="all">Toute la flotte</option>
           </select>
         </label>
@@ -425,7 +425,7 @@
   <section id="depenses" class="section">
     <div class="header-bar">
       <h2>Gestion des Dépenses, Compteur & Alertes</h2>
-      <select id="depVehSelect" onchange="renderDepenses()" style="padding:9px 14px; border-radius:7px; border:1px solid var(--border); font-weight:600; min-width:240px;"></select>
+      <select id="depVehSelect" style="padding:9px 14px; border-radius:7px; border:1px solid var(--border); font-weight:600; min-width:240px;"></select>
     </div>
     <div id="depensesContent"></div>
   </section>
@@ -461,7 +461,7 @@
           </p>
         </div>
         <div>
-          <button class="btn btn-excel" onclick="document.getElementById('excelFile').click()">Choisir un fichier Excel / CSV</button>
+          <button class="btn btn-excel" data-action="trigger-excel-input">Choisir un fichier Excel / CSV</button>
           <div id="excelLog" style="margin-top:12px; font-size:0.85rem; font-weight:600; color:var(--excel);"></div>
         </div>
       </div>
@@ -474,8 +474,8 @@
           </p>
         </div>
         <div>
-          <input type="file" id="turoFile" accept=".csv,.xlsx,.xls,.txt" style="display:none" onchange="handleImportTuro(event)">
-          <button class="btn btn-turo" onclick="document.getElementById('turoFile').click()">Importer fichier Turo</button>
+          <input type="file" id="turoFile" accept=".csv,.xlsx,.xls,.txt" style="display:none">
+          <button class="btn btn-turo" data-action="trigger-turo-input">Importer fichier Turo</button>
           <div id="turoLog" style="margin-top:12px; font-size:0.85rem; font-weight:600;"></div>
         </div>
       </div>
@@ -488,8 +488,8 @@
           </p>
         </div>
         <div>
-          <input type="file" id="gaFile" accept=".xlsx,.xls,.csv,.txt" style="display:none" onchange="handleImportGetaround(event)">
-          <button class="btn btn-ga" onclick="document.getElementById('gaFile').click()">Importer fichier Getaround</button>
+          <input type="file" id="gaFile" accept=".xlsx,.xls,.csv,.txt" style="display:none">
+          <button class="btn btn-ga" data-action="trigger-ga-input">Importer fichier Getaround</button>
           <div id="gaLog" style="margin-top:12px; font-size:0.85rem; font-weight:600;"></div>
         </div>
       </div>
@@ -502,10 +502,10 @@
           </p>
         </div>
         <div style="display:flex; flex-direction:column; gap:8px;">
-          <button class="btn btn-outline" onclick="exportCSV()">📤 Exporter bilan annuel (.csv)</button>
-          <button class="btn btn-outline" onclick="backupJSON()">💾 Sauvegarder base (.json)</button>
-          <button class="btn btn-outline" onclick="document.getElementById('restoreFile').click()">📂 Restaurer base (.json)</button>
-          <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreJSON(event)">
+          <button class="btn btn-outline" data-action="export-csv">📤 Exporter bilan annuel (.csv)</button>
+          <button class="btn btn-outline" data-action="backup-json">💾 Sauvegarder base (.json)</button>
+          <button class="btn btn-outline" data-action="trigger-restore-input">📂 Restaurer base (.json)</button>
+          <input type="file" id="restoreFile" accept=".json" style="display:none">
         </div>
       </div>
     </div>
@@ -516,8 +516,8 @@
     <div class="header-bar">
       <h2>🛡️ Back-Office — Gestion des Utilisateurs</h2>
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-        <input type="text" id="adminSearchInput" oninput="renderAdminUsers()" placeholder="🔍 Rechercher par email..." style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; min-width:230px;">
-        <button class="btn btn-primary" onclick="loadAdminUsers()">🔄 Actualiser la liste</button>
+        <input type="text" id="adminSearchInput" placeholder="🔍 Rechercher par email..." style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; min-width:230px;">
+        <button class="btn btn-primary" data-action="refresh-admin">🔄 Actualiser la liste</button>
       </div>
     </div>
 
@@ -568,8 +568,8 @@
       <input type="number" id="newRevente" value="0" step="0.01">
     </div>
     <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeAddModal()">Annuler</button>
-      <button class="btn btn-success" onclick="saveNewVehicle()">Créer le véhicule</button>
+      <button class="btn btn-outline" data-action="close-add-modal">Annuler</button>
+      <button class="btn btn-success" data-action="save-new-vehicle">Créer le véhicule</button>
     </div>
   </div>
 </div>
@@ -584,7 +584,7 @@
     </div>
     <div class="form-group">
       <label>Catégorie</label>
-      <select id="qeCatSelect" onchange="onQuickCatChange()">
+      <select id="qeCatSelect">
         <option value="nettoyage">🧽 Nettoyage / Lavage (ajouté au mois)</option>
         <option value="Vidange / Révision">🛢️ Vidange / Révision</option>
         <option value="Pneumatiques">🛞 Pneumatiques</option>
@@ -606,8 +606,8 @@
       <input type="number" id="qeMontant" step="0.01" placeholder="0.00">
     </div>
     <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeQuickExpenseModal()">Annuler</button>
-      <button class="btn btn-success" onclick="saveQuickExpense()">Enregistrer</button>
+      <button class="btn btn-outline" data-action="close-quick-expense">Annuler</button>
+      <button class="btn btn-success" data-action="save-quick-expense">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -622,12 +622,12 @@
 
     <div class="form-group">
       <label>1. Onglet à importer</label>
-      <select id="mapSheetSelect" onchange="onMapSheetChange()"></select>
+      <select id="mapSheetSelect"></select>
     </div>
 
     <div class="form-group">
       <label>2. Type de données dans cet onglet</label>
-      <select id="mapImportType" onchange="toggleMapFields()">
+      <select id="mapImportType">
         <option value="mensuel">📅 Revenus & Locations (Mois / Véhicules / CA)</option>
         <option value="vehicules">🚗 Liste de Véhicules (Parc / Achats / Coûts fixes)</option>
         <option value="depenses">🔧 Dépenses & Entretiens ponctuels</option>
@@ -646,15 +646,15 @@
     <div id="mapPreviewBox" style="margin-top:10px; font-size:0.8rem; color:var(--muted);"></div>
 
     <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeExcelMapModal()">Annuler</button>
-      <button class="btn btn-excel" onclick="executeMappedExcelImport()">✅ Lancer l'importation</button>
+      <button class="btn btn-outline" data-action="close-excel-map">Annuler</button>
+      <button class="btn btn-excel" data-action="execute-mapped-import">✅ Lancer l'importation</button>
     </div>
   </div>
 </div>
 
 <script>
 // ============================================================================
-// 0. CONFIGURATION CLOUD SUPABASE & AUTHENTIFICATION MULTI-UTILISATEURS
+// 0. CONFIGURATION CLOUD SUPABASE & ÉTAT GLOBAL OPTIMISÉ
 // ============================================================================
 const SUPABASE_URL = "https://iluphzfdxwcbmjcrdtdi.supabase.co";
 const SUPABASE_KEY = "sb_publishable_2l8o5VxcmPqBuCNERP2oIw_EhEx9Gwl";
@@ -667,32 +667,10 @@ let currentUser = null;
 let isCurrentUserAdmin = false;
 let adminUsersCache = [];
 let realtimeChannel = null;
+let activeTabId = "dashboard";
+let dirtyTabs = new Set(["dashboard", "details", "depenses", "rentabilite"]);
+let lastLocalSaveTs = 0;
 
-function getStorageKey() {
-  return currentUser ? `flotte_data_${currentUser.id}` : "flotte_data_guest";
-}
-
-function escapeHTML(str) {
-  return String(str || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-let toastTimer = null;
-function showToast(msg = "✅ Enregistré") {
-  const el = document.getElementById("toastNotif");
-  if (!el) return;
-  el.innerText = msg;
-  el.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
-}
-
-// ============================================================================
-// 1. DONNÉES & SYNCHRONISATION SUPABASE ISOLÉE PAR UTILISATEUR
-// ============================================================================
 const MOIS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
 
 let db = {
@@ -706,6 +684,39 @@ let chartPlateformesInstance = null;
 let chartVehiculesInstance = null;
 let syncTimer = null;
 
+function getStorageKey() {
+  return currentUser ? `flotte_data_${currentUser.id}` : "flotte_data_guest";
+}
+
+function escapeHTML(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+let toastTimer = null;
+function showToast(msg = "✅ Enregistré") {
+  const el = document.getElementById("toastNotif");
+  if (!el) return;
+  el.innerText = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2000);
+}
+
+function markAllDirty() {
+  dirtyTabs.add("dashboard");
+  dirtyTabs.add("details");
+  dirtyTabs.add("depenses");
+  dirtyTabs.add("rentabilite");
+}
+
+// ============================================================================
+// 1. SYNCHRONISATION SUPABASE & AUTHENTIFICATION (DEBOUNCE 1.5s + ANTI-ÉCHO)
+// ============================================================================
 function initDynamicSelectors() {
   const curYear = new Date().getFullYear();
   const yearSel = document.getElementById("yearSelect");
@@ -806,16 +817,12 @@ function showAuthModal(initialErrorMsg = "") {
   document.getElementById("authPwd").onkeydown = e => {
     if (e.key === "Enter") document.getElementById("btnLogin").click();
   };
-  setTimeout(() => {
-    const emailInput = document.getElementById("authEmail");
-    if (emailInput) emailInput.focus();
-  }, 100);
+  setTimeout(() => document.getElementById("authEmail")?.focus(), 100);
 }
 
 function showResetPasswordModal() {
   if (document.getElementById("resetScreen")) return;
-  const oldScreen = document.getElementById("authScreen");
-  if (oldScreen) oldScreen.remove();
+  document.getElementById("authScreen")?.remove();
 
   const masque = document.createElement("div");
   masque.id = "resetScreen";
@@ -852,10 +859,7 @@ function showResetPasswordModal() {
     } else {
       msgEl.style.color = "#166534";
       msgEl.innerText = "Mot de passe modifié avec succès !";
-      setTimeout(() => {
-        const scr = document.getElementById("resetScreen");
-        if (scr) scr.remove();
-      }, 1000);
+      setTimeout(() => document.getElementById("resetScreen")?.remove(), 1000);
     }
   };
 }
@@ -868,10 +872,7 @@ async function verifyUserProfile(user) {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (error) {
-    console.warn("Table profiles non détectée ou erreur :", error.message);
-    return { active: true, admin: false };
-  }
+  if (error) return { active: true, admin: false };
   if (!data) {
     await sb.from("profiles").insert({ id: user.id, email: user.email, is_active: true, is_admin: false });
     return { active: true, admin: false };
@@ -886,10 +887,10 @@ async function logoutUser(reasonMsg = "") {
   if (adminBtn) adminBtn.style.display = "none";
   if (sb) await sb.auth.signOut();
   db = { year: new Date().getFullYear(), vehicles: [], mensuel: {} };
-  renderAll();
+  markAllDirty();
+  renderActiveView();
   if (reasonMsg) {
-    const old = document.getElementById("authScreen");
-    if (old) old.remove();
+    document.getElementById("authScreen")?.remove();
     showAuthModal(reasonMsg);
   }
 }
@@ -897,6 +898,7 @@ async function logoutUser(reasonMsg = "") {
 async function pushToCloud() {
   if (!sb || !currentUser) return;
   setCloudStatus("⏳ Enregistrement Cloud...");
+  lastLocalSaveTs = Date.now();
   const { error } = await sb
     .from("flotte_sync")
     .upsert({ id: currentUser.id, data: db, updated_at: new Date().toISOString() });
@@ -929,31 +931,31 @@ async function loadFromCloud() {
   if (data && data.data && Array.isArray(data.data.vehicles)) {
     db = data.data;
     localStorage.setItem(getStorageKey(), JSON.stringify(db));
-    renderAll();
+    markAllDirty();
+    renderActiveView();
     const heure = new Date(data.updated_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
     setCloudStatus(`☁️ Synchronisé (${heure})`);
   } else {
     db = JSON.parse(localStorage.getItem(getStorageKey())) || { year: new Date().getFullYear(), vehicles: [], mensuel: {} };
     await pushToCloud();
-    renderAll();
+    markAllDirty();
+    renderActiveView();
   }
 }
 
 function forceSyncNow() {
-  if (db.vehicles.length > 0) {
-    pushToCloud();
-  } else {
-    loadFromCloud();
-  }
+  if (db.vehicles.length > 0) pushToCloud();
+  else loadFromCloud();
   showToast("🔄 Synchronisation lancée");
 }
 
 function saveDB() {
   if (!currentUser) return;
+  lastLocalSaveTs = Date.now();
   localStorage.setItem(getStorageKey(), JSON.stringify(db));
   if (sb) {
     clearTimeout(syncTimer);
-    syncTimer = setTimeout(pushToCloud, 600);
+    syncTimer = setTimeout(pushToCloud, 1500);
   }
 }
 
@@ -962,10 +964,13 @@ function subscribeRealtime() {
   if (realtimeChannel) sb.removeChannel(realtimeChannel);
   realtimeChannel = sb.channel(`flotte-${currentUser.id}`)
     .on("postgres_changes", { event: "*", schema: "public", table: "flotte_sync", filter: `id=eq.${currentUser.id}` }, payload => {
+      // Anti-écho : ignorer si la mise à jour provient de cet onglet il y a moins de 2.5s
+      if (Date.now() - lastLocalSaveTs < 2500) return;
       if (payload.new && payload.new.data) {
         db = payload.new.data;
         localStorage.setItem(getStorageKey(), JSON.stringify(db));
-        renderAll();
+        markAllDirty();
+        renderActiveView();
         setCloudStatus("🔄 Mis à jour en direct");
       }
     })
@@ -996,13 +1001,13 @@ if (sb) {
       const adminBtn = document.getElementById("navAdminBtn");
       if (adminBtn) adminBtn.style.display = isCurrentUserAdmin ? "flex" : "none";
 
-      const screen = document.getElementById("authScreen");
-      if (screen) screen.remove();
+      document.getElementById("authScreen")?.remove();
       const emailEl = document.getElementById("userEmailDisplay");
       if (emailEl) emailEl.innerText = (isCurrentUserAdmin ? "🛡️ " : "👤 ") + currentUser.email;
 
       db = JSON.parse(localStorage.getItem(getStorageKey())) || { year: new Date().getFullYear(), vehicles: [], mensuel: {} };
-      renderAll();
+      markAllDirty();
+      renderActiveView();
       loadFromCloud();
       subscribeRealtime();
       if (isCurrentUserAdmin) loadAdminUsers();
@@ -1109,9 +1114,9 @@ function renderAdminUsers() {
     if (isSelf) {
       actionBtn = `<span style="font-size:0.8rem;color:var(--muted);">Votre compte</span>`;
     } else if (u.is_active) {
-      actionBtn = `<button class="btn btn-danger" style="padding:5px 11px;font-size:0.8rem;" onclick="toggleUserActive('${u.id}', false)">⛔ Désactiver</button>`;
+      actionBtn = `<button class="btn btn-danger" style="padding:5px 11px;font-size:0.8rem;" data-action="toggle-user" data-user-id="${escapeHTML(u.id)}" data-state="false">⛔ Désactiver</button>`;
     } else {
-      actionBtn = `<button class="btn btn-success" style="padding:5px 11px;font-size:0.8rem;" onclick="toggleUserActive('${u.id}', true)">✅ Activer</button>`;
+      actionBtn = `<button class="btn btn-success" style="padding:5px 11px;font-size:0.8rem;" data-action="toggle-user" data-user-id="${escapeHTML(u.id)}" data-state="true">✅ Activer</button>`;
     }
 
     html += `
@@ -1155,7 +1160,7 @@ async function toggleUserActive(targetUserId, newState) {
 }
 
 // ============================================================================
-// 2. UTILITAIRES & CALCULS MÉTIER
+// 2. UTILITAIRES & CALCULS MÉTIER INDEXÉS (O(1) PAR MOIS)
 // ============================================================================
 function nettoyerImmat(str) {
   return (str || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -1181,7 +1186,23 @@ function getJoursDispoMois(veh, year, monthIdx) {
   return Math.floor((finMois - dtService) / (1000 * 60 * 60 * 24)) + 1;
 }
 
-function getLigneMensuelle(veh, year, monthIdx) {
+// Pré-indexation des entretiens par véhicule et par mois "YYYY-MM"
+function buildEntretiensIndex() {
+  const index = new Map();
+  db.vehicles.forEach(v => {
+    const byMonth = {};
+    (v.entretiens || []).forEach(e => {
+      if (e.date && e.date.length >= 7) {
+        const ym = e.date.slice(0, 7);
+        byMonth[ym] = (byMonth[ym] || 0) + (Number(e.montant) || 0);
+      }
+    });
+    index.set(v.id, byMonth);
+  });
+  return index;
+}
+
+function getLigneMensuelle(veh, year, monthIdx, entIndex = null) {
   const ym = `${year}-${String(monthIdx + 1).padStart(2, "0")}`;
   const key = `${ym}_${veh.id}`;
   const stored = db.mensuel[key] || { turo: 0, ga: 0, nettoyage: 0, joursLoues: 0 };
@@ -1198,11 +1219,11 @@ function getLigneMensuelle(veh, year, monthIdx) {
     ? ((Number(veh.fraisFixes.boitier) || 0) + (Number(veh.fraisFixes.logiciel) || 0))
     : 0;
 
-  const entretien = (veh.entretiens || [])
-    .filter(e => e.date && e.date.startsWith(ym))
-    .reduce((acc, e) => acc + (Number(e.montant) || 0), 0);
-  const nettoyage = Number(stored.nettoyage) || 0;
+  const entretien = entIndex
+    ? (entIndex.get(veh.id)?.[ym] || 0)
+    : (veh.entretiens || []).filter(e => e.date && e.date.startsWith(ym)).reduce((acc, e) => acc + (Number(e.montant) || 0), 0);
 
+  const nettoyage = Number(stored.nettoyage) || 0;
   const chargesTotal = assurance + entretien + nettoyage + boitierLogiciel;
   const benefice = caTotal - chargesTotal;
 
@@ -1243,7 +1264,7 @@ function getAlertesVehicule(veh) {
 }
 
 // ============================================================================
-// 3. IMPORTATION EXCEL UNIVERSELLE (MODÈLE HISTORIQUE + TOUT FORMAT EXCEL/CSV)
+// 3. IMPORTATION EXCEL UNIVERSELLE
 // ============================================================================
 let pendingWorkbook = null;
 let pendingFileName = "";
@@ -1506,7 +1527,8 @@ function executeMappedExcelImport() {
   }
 
   saveDB();
-  renderAll();
+  markAllDirty();
+  renderActiveView();
   const msg = `✅ ${importedCount} lignes importées depuis "${pendingFileName}" !`;
   const logEl = document.getElementById("excelLog");
   if (logEl) logEl.innerText = msg;
@@ -1651,7 +1673,8 @@ function importLegacyExcelWorkbook(workbook, fileName) {
   db.vehicles = Array.from(newVehiclesMap.values());
   db.mensuel = newMensuel;
   saveDB();
-  renderAll();
+  markAllDirty();
+  renderActiveView();
 
   const msg = `✅ ${db.vehicles.length} véhicules importés depuis "${fileName}" !`;
   const logEl = document.getElementById("excelLog");
@@ -1660,11 +1683,10 @@ function importLegacyExcelWorkbook(workbook, fileName) {
 }
 
 // ============================================================================
-// 4. NAVIGATION & RENDUS PRINCIPAUX
+// 4. NAVIGATION & RENDU CIBLÉ PAR ONGLET (ZÉRO RECALCUL INUTILE)
 // ============================================================================
 function toggleMobileMenu() {
-  const sidebar = document.getElementById("sidebar");
-  if (sidebar) sidebar.classList.toggle("mobile-open");
+  document.getElementById("sidebar")?.classList.toggle("mobile-open");
 }
 
 function goDashboard() {
@@ -1672,33 +1694,49 @@ function goDashboard() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function showTab(tabId, btn) {
+function showTab(tabId) {
   if (tabId === "admin" && !isCurrentUserAdmin) return;
+  activeTabId = tabId;
   document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
   document.querySelectorAll(".nav-btn, .m-nav-item").forEach(b => {
     b.classList.toggle("active", b.dataset.tab === tabId);
   });
   document.getElementById(tabId).classList.add("active");
   document.getElementById("sidebar").classList.remove("mobile-open");
+
   if (tabId === "admin") loadAdminUsers();
-  else renderAll();
+  else renderActiveView();
 }
 
 function changeYear(y) {
   db.year = parseInt(y, 10);
   saveDB();
-  renderAll();
+  markAllDirty();
+  renderActiveView();
 }
 
-function renderAll() {
+function renderActiveView(forceCurrent = false) {
   initDynamicSelectors();
-  document.getElementById("yearSelect").value = String(db.year);
-  renderDashboard();
-  populateDetailFilters();
-  renderDetails();
-  populateDepSelect();
-  renderDepenses();
-  renderRentabilite();
+  const yearEl = document.getElementById("yearSelect");
+  if (yearEl) yearEl.value = String(db.year);
+
+  renderAlerts();
+
+  if (activeTabId === "dashboard" && (forceCurrent || dirtyTabs.has("dashboard"))) {
+    renderDashboard();
+    dirtyTabs.delete("dashboard");
+  } else if (activeTabId === "details" && (forceCurrent || dirtyTabs.has("details"))) {
+    populateDetailFilters();
+    renderDetails();
+    dirtyTabs.delete("details");
+  } else if (activeTabId === "depenses" && (forceCurrent || dirtyTabs.has("depenses"))) {
+    populateDepSelect();
+    renderDepenses();
+    dirtyTabs.delete("depenses");
+  } else if (activeTabId === "rentabilite" && (forceCurrent || dirtyTabs.has("rentabilite"))) {
+    renderRentabilite();
+    dirtyTabs.delete("rentabilite");
+  }
 }
 
 function renderAlerts() {
@@ -1731,6 +1769,7 @@ function renderAlerts() {
 function renderDashboard() {
   const year = db.year;
   const hasVehicles = db.vehicles.length > 0;
+  const entIndex = buildEntretiensIndex();
 
   const obBox = document.getElementById("onboardingBox");
   const mainContent = document.getElementById("dashMainContent");
@@ -1747,7 +1786,7 @@ function renderDashboard() {
   for (let m = 0; m < 12; m++) {
     let mCA = 0, mChg = 0, mJours = 0, mDispo = 0;
     db.vehicles.forEach(v => {
-      const l = getLigneMensuelle(v, year, m);
+      const l = getLigneMensuelle(v, year, m, entIndex);
       mCA += l.caTotal;
       mChg += l.chargesTotal;
       mJours += l.joursLoues;
@@ -1813,8 +1852,7 @@ function renderDashboard() {
     </tbody>
   `;
 
-  renderAlerts();
-  if (hasVehicles) renderCharts(dataCA, dataChg, dataBen, totTuroYear, totGAYear);
+  if (hasVehicles) renderCharts(dataCA, dataChg, dataBen, totTuroYear, totGAYear, entIndex);
 }
 
 const piePercentagePlugin = {
@@ -1844,7 +1882,7 @@ const piePercentagePlugin = {
   }
 };
 
-function renderCharts(dataCA, dataChg, dataBen, totTuro, totGA) {
+function renderCharts(dataCA, dataChg, dataBen, totTuro, totGA, entIndex) {
   if (typeof Chart === "undefined") return;
 
   const ctx1 = document.getElementById("chartMensuel");
@@ -1908,7 +1946,7 @@ function renderCharts(dataCA, dataChg, dataBen, totTuro, totGA) {
     db.vehicles.forEach(v => {
       let vCA = 0, vChg = 0;
       for (let m = 0; m < 12; m++) {
-        const l = getLigneMensuelle(v, db.year, m);
+        const l = getLigneMensuelle(v, db.year, m, entIndex);
         vCA += l.caTotal;
         vChg += l.chargesTotal;
       }
@@ -1932,14 +1970,14 @@ function renderCharts(dataCA, dataChg, dataBen, totTuro, totGA) {
 }
 
 // ============================================================================
-// 5. DÉTAILS MENSUELS (AVEC FILTRES & BARRE D'OCCUPATION COMPACTE)
+// 5. DÉTAILS MENSUELS (MISE À JOUR INCÉMENTALE DE LIGNE SANS RE-RENDU GLOBAL)
 // ============================================================================
 function populateDetailFilters() {
   const vSel = document.getElementById("filterDetailVeh");
   if (!vSel) return;
   const cur = vSel.value;
   vSel.innerHTML = `<option value="all">Toute la flotte (${db.vehicles.length})</option>` +
-    db.vehicles.map(v => `<option value="${v.id}">${escapeHTML(v.modele)} - ${escapeHTML(v.immat)}</option>`).join("");
+    db.vehicles.map(v => `<option value="${escapeHTML(v.id)}">${escapeHTML(v.modele)} - ${escapeHTML(v.immat)}</option>`).join("");
   if (cur && (cur === "all" || db.vehicles.some(v => v.id === cur))) vSel.value = cur;
 }
 
@@ -1961,6 +1999,7 @@ function renderDetails() {
     return;
   }
 
+  const entIndex = buildEntretiensIndex();
   const filterMonth = document.getElementById("filterDetailMonth")?.value || "all";
   const filterVeh = document.getElementById("filterDetailVeh")?.value || "all";
   const vehiclesList = filterVeh === "all" ? db.vehicles : db.vehicles.filter(v => v.id === filterVeh);
@@ -1982,7 +2021,7 @@ function renderDetails() {
     let sTuro = 0, sGA = 0, sCA = 0, sAss = 0, sEnt = 0, sNet = 0, sBoi = 0, sChg = 0, sBen = 0, sJL = 0, sJD = 0;
 
     vehiclesList.forEach(v => {
-      const l = getLigneMensuelle(v, year, m);
+      const l = getLigneMensuelle(v, year, m, entIndex);
       sTuro += l.caTuro; sGA += l.caGA; sCA += l.caTotal;
       sAss += l.assurance; sEnt += l.entretien; sNet += l.nettoyage; sBoi += l.boitierLogiciel;
       sChg += l.chargesTotal; sBen += l.benefice; sJL += l.joursLoues; sJD += l.joursDispo;
@@ -1990,7 +2029,7 @@ function renderDetails() {
       const rowClass = (!l.estActifCeMois && l.caTotal === 0 && l.chargesTotal === 0) ? "inactive-row" : "";
 
       html += `
-        <tr class="${rowClass}">
+        <tr class="${rowClass}" data-row-key="${escapeHTML(l.key)}" data-month="${m}">
           <td>${MOIS[m]}</td>
           <td><b>${escapeHTML(v.modele)} - ${escapeHTML(v.immat)}</b></td>
           <td>${fmtEur(l.caTuro)}</td>
@@ -1998,10 +2037,10 @@ function renderDetails() {
           <td><b>${fmtEur(l.caTotal)}</b></td>
           <td>${fmtEur(l.assurance)}</td>
           <td>${fmtEur(l.entretien)}</td>
-          <td><input class="cell-input" type="number" step="0.01" value="${l.nettoyage}" onchange="updateNettoyage('${l.key}', this.value)"></td>
+          <td><input class="cell-input" type="number" step="0.01" value="${l.nettoyage}" data-field="nettoyage" data-key="${escapeHTML(l.key)}"></td>
           <td>${fmtEur(l.boitierLogiciel)}</td>
-          <td>${fmtEur(l.chargesTotal)}</td>
-          <td><b>${fmtEur(l.benefice)}</b></td>
+          <td class="col-chg">${fmtEur(l.chargesTotal)}</td>
+          <td class="col-ben"><b>${fmtEur(l.benefice)}</b></td>
           <td>${renderOccupationBar(l.joursLoues, l.joursDispo, l.tauxOcc)}</td>
         </tr>
       `;
@@ -2009,11 +2048,11 @@ function renderDetails() {
 
     const totOcc = sJD > 0 ? sJL / sJD : 0;
     html += `
-      <tr class="total-row">
+      <tr class="total-row" data-total-month="${m}">
         <td></td><td>Total ${MOIS[m]}</td>
         <td>${fmtEur(sTuro)}</td><td>${fmtEur(sGA)}</td><td>${fmtEur(sCA)}</td>
-        <td>${fmtEur(sAss)}</td><td>${fmtEur(sEnt)}</td><td>${fmtEur(sNet)}</td><td>${fmtEur(sBoi)}</td>
-        <td>${fmtEur(sChg)}</td><td>${fmtEur(sBen)}</td><td>${renderOccupationBar(sJL, sJD, totOcc)}</td>
+        <td>${fmtEur(sAss)}</td><td>${fmtEur(sEnt)}</td><td class="tot-net">${fmtEur(sNet)}</td><td>${fmtEur(sBoi)}</td>
+        <td class="tot-chg">${fmtEur(sChg)}</td><td class="tot-ben">${fmtEur(sBen)}</td><td>${renderOccupationBar(sJL, sJD, totOcc)}</td>
       </tr>
     `;
   }
@@ -2022,18 +2061,41 @@ function renderDetails() {
 }
 
 function updateNettoyage(key, val) {
-  const scrollBox = document.getElementById("detailsScrollBox");
-  const prevTop = scrollBox ? scrollBox.scrollTop : 0;
-  const prevLeft = scrollBox ? scrollBox.scrollLeft : 0;
-
   if (!db.mensuel[key]) db.mensuel[key] = { turo: 0, ga: 0, nettoyage: 0, joursLoues: 0 };
   db.mensuel[key].nettoyage = parseFloat(val) || 0;
   saveDB();
-  renderAll();
 
-  if (scrollBox) {
-    scrollBox.scrollTop = prevTop;
-    scrollBox.scrollLeft = prevLeft;
+  // Marquer les autres onglets comme à rafraîchir, mais mettre à jour cette ligne DOM en place !
+  dirtyTabs.add("dashboard");
+  dirtyTabs.add("rentabilite");
+
+  const tr = document.querySelector(`tr[data-row-key="${CSS.escape(key)}"]`);
+  if (tr) {
+    const mIdx = Number(tr.dataset.month);
+    const vehId = key.slice(8);
+    const veh = db.vehicles.find(v => v.id === vehId);
+    if (veh) {
+      const l = getLigneMensuelle(veh, db.year, mIdx);
+      tr.querySelector(".col-chg").textContent = fmtEur(l.chargesTotal);
+      tr.querySelector(".col-ben").innerHTML = `<b>${fmtEur(l.benefice)}</b>`;
+    }
+
+    // Recalculer la ligne Total du mois concerné
+    const filterVeh = document.getElementById("filterDetailVeh")?.value || "all";
+    const vehiclesList = filterVeh === "all" ? db.vehicles : db.vehicles.filter(v => v.id === filterVeh);
+    let sNet = 0, sChg = 0, sBen = 0;
+    vehiclesList.forEach(v => {
+      const lm = getLigneMensuelle(v, db.year, mIdx);
+      sNet += lm.nettoyage;
+      sChg += lm.chargesTotal;
+      sBen += lm.benefice;
+    });
+    const totTr = document.querySelector(`tr[data-total-month="${mIdx}"]`);
+    if (totTr) {
+      totTr.querySelector(".tot-net").textContent = fmtEur(sNet);
+      totTr.querySelector(".tot-chg").textContent = fmtEur(sChg);
+      totTr.querySelector(".tot-ben").textContent = fmtEur(sBen);
+    }
   }
   showToast("✅ Nettoyage enregistré");
 }
@@ -2044,7 +2106,7 @@ function updateNettoyage(key, val) {
 function populateDepSelect() {
   const sel = document.getElementById("depVehSelect");
   const current = sel.value;
-  sel.innerHTML = db.vehicles.map(v => `<option value="${v.id}">${escapeHTML(v.modele)} - ${escapeHTML(v.immat)}</option>`).join("");
+  sel.innerHTML = db.vehicles.map(v => `<option value="${escapeHTML(v.id)}">${escapeHTML(v.modele)} - ${escapeHTML(v.immat)}</option>`).join("");
   if (current && db.vehicles.some(v => v.id === current)) sel.value = current;
 }
 
@@ -2057,6 +2119,7 @@ function renderDepenses() {
   const totFixe = (Number(veh.fraisFixes.assurance) || 0) + (Number(veh.fraisFixes.boitier) || 0) + (Number(veh.fraisFixes.logiciel) || 0);
   const kmActuel = getKmTotalVehicule(veh);
   const alertes = getAlertesVehicule(veh);
+  const vid = escapeHTML(veh.id);
 
   container.innerHTML = `
     <div class="card">
@@ -2065,23 +2128,23 @@ function renderDepenses() {
         <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
           <label style="font-size:0.85rem; font-weight:600; color:var(--primary);">
             📅 Mise en service :
-            <input type="date" value="${veh.dateService || `${db.year}-01-01`}" onchange="updateDateService('${veh.id}', this.value)" style="padding:6px 9px; border:1px solid var(--border); border-radius:6px; background:var(--editable); font-weight:600;">
+            <input type="date" value="${veh.dateService || `${db.year}-01-01`}" data-action="update-date-service" data-veh-id="${vid}" style="padding:6px 9px; border:1px solid var(--border); border-radius:6px; background:var(--editable); font-weight:600;">
           </label>
           <label style="font-size:0.85rem; font-weight:600; color:var(--primary);">
             🛣️ Compteur initial (km) :
-            <input type="number" value="${veh.kmInitial || 0}" onchange="updateKmInitial('${veh.id}', this.value)" style="width:100px; padding:6px 9px; border:1px solid var(--border); border-radius:6px; background:var(--editable); font-weight:600; text-align:right;">
+            <input type="number" value="${veh.kmInitial || 0}" data-action="update-km-init" data-veh-id="${vid}" style="width:100px; padding:6px 9px; border:1px solid var(--border); border-radius:6px; background:var(--editable); font-weight:600; text-align:right;">
           </label>
           <span class="badge badge-ok">Compteur estimé : ${kmActuel.toLocaleString("fr-FR")} km</span>
-          <button class="btn btn-danger" onclick="deleteVehicle('${veh.id}')">🗑️ Supprimer</button>
+          <button class="btn btn-danger" data-action="delete-vehicle" data-veh-id="${vid}">🗑️ Supprimer</button>
         </div>
       </div>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Poste de Charge</th><th>Fournisseur / Notes</th><th>Montant Mensuel TTC (€)</th></tr></thead>
           <tbody>
-            <tr><td>Assurance Flotte</td><td>Contrat Auto Pro</td><td><input class="cell-input" type="number" step="0.01" value="${veh.fraisFixes.assurance}" onchange="updateFixe('${veh.id}', 'assurance', this.value)"></td></tr>
-            <tr><td>Boîtier Connect</td><td>Abonnement Getaround / Turo</td><td><input class="cell-input" type="number" step="0.01" value="${veh.fraisFixes.boitier}" onchange="updateFixe('${veh.id}', 'boitier', this.value)"></td></tr>
-            <tr><td>Appli & Agenda / Logiciel</td><td>Outil de synchronisation fleet</td><td><input class="cell-input" type="number" step="0.01" value="${veh.fraisFixes.logiciel}" onchange="updateFixe('${veh.id}', 'logiciel', this.value)"></td></tr>
+            <tr><td>Assurance Flotte</td><td>Contrat Auto Pro</td><td><input class="cell-input" type="number" step="0.01" value="${veh.fraisFixes.assurance}" data-action="update-fixe" data-veh-id="${vid}" data-field="assurance"></td></tr>
+            <tr><td>Boîtier Connect</td><td>Abonnement Getaround / Turo</td><td><input class="cell-input" type="number" step="0.01" value="${veh.fraisFixes.boitier}" data-action="update-fixe" data-veh-id="${vid}" data-field="boitier"></td></tr>
+            <tr><td>Appli & Agenda / Logiciel</td><td>Outil de synchronisation fleet</td><td><input class="cell-input" type="number" step="0.01" value="${veh.fraisFixes.logiciel}" data-action="update-fixe" data-veh-id="${vid}" data-field="logiciel"></td></tr>
             <tr class="total-row"><td colspan="2">TOTAL FIXE MENSUEL (appliqué à partir du mois de mise en service)</td><td>${fmtEur(totFixe)}</td></tr>
           </tbody>
         </table>
@@ -2096,7 +2159,7 @@ function renderDepenses() {
         <input type="number" id="alIntMois" placeholder="Intervalle mois (ex: 12)" style="padding:8px; border:1px solid var(--border); border-radius:6px; width:165px;">
         <input type="number" id="alDerKm" placeholder="Km au dernier" value="${kmActuel}" style="padding:8px; border:1px solid var(--border); border-radius:6px; width:145px;">
         <input type="date" id="alDerDate" value="${new Date().toISOString().slice(0,10)}" style="padding:8px; border:1px solid var(--border); border-radius:6px;">
-        <button class="btn btn-primary" onclick="addAlerteConfig('${veh.id}')">🔔 Ajouter alerte</button>
+        <button class="btn btn-primary" data-action="add-alerte" data-veh-id="${vid}">🔔 Ajouter alerte</button>
       </div>
       <div class="table-wrap">
         <table>
@@ -2105,6 +2168,7 @@ function renderDepenses() {
             ${alertes.map(a => {
               const badgeCls = a.urgent ? "badge-danger" : (a.proche ? "badge-warn" : "badge-ok");
               const statutTxt = a.urgent ? "À FAIRE IMMÉDIATEMENT" : (a.proche ? "Bientôt dû" : "OK");
+              const aid = escapeHTML(a.id);
               return `
                 <tr>
                   <td><b>${escapeHTML(a.nom)}</b></td>
@@ -2112,8 +2176,8 @@ function renderDepenses() {
                   <td>${a.intervalleMois > 0 ? `Tous les ${a.intervalleMois} mois (reste ${a.joursRestants} j)` : "-"}</td>
                   <td><span class="badge ${badgeCls}">${statutTxt}</span></td>
                   <td>
-                    <button class="btn btn-success" style="padding:4px 8px; font-size:0.75rem;" onclick="resetAlerte('${veh.id}', '${a.id}')">✅ Effectué aujourd'hui</button>
-                    <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="delAlerte('${veh.id}', '${a.id}')">Suppr.</button>
+                    <button class="btn btn-success" style="padding:4px 8px; font-size:0.75rem;" data-action="reset-alerte" data-veh-id="${vid}" data-al-id="${aid}">✅ Effectué aujourd'hui</button>
+                    <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" data-action="del-alerte" data-veh-id="${vid}" data-al-id="${aid}">Suppr.</button>
                   </td>
                 </tr>
               `;
@@ -2137,21 +2201,24 @@ function renderDepenses() {
         </select>
         <input type="text" id="entDesc" placeholder="Garage / Description" style="padding:8px; border:1px solid var(--border); border-radius:6px; flex:1; min-width:160px;">
         <input type="number" id="entMontant" placeholder="Montant €" step="0.01" style="padding:8px; border:1px solid var(--border); border-radius:6px; width:120px;">
-        <button class="btn btn-success" onclick="addEntretien('${veh.id}')">➕ Ajouter dépense</button>
+        <button class="btn btn-success" data-action="add-entretien" data-veh-id="${vid}">➕ Ajouter dépense</button>
       </div>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Date</th><th>Type d'Intervention</th><th>Garage / Description</th><th>Montant TTC (€)</th><th>Actions</th></tr></thead>
           <tbody>
-            ${(veh.entretiens || []).map(e => `
-              <tr>
-                <td><input type="date" value="${e.date}" onchange="editEntretien('${veh.id}', '${e.id}', 'date', this.value)" style="padding:4px; border:1px solid var(--border); border-radius:4px;"></td>
-                <td><input type="text" value="${escapeHTML(e.type)}" onchange="editEntretien('${veh.id}', '${e.id}', 'type', this.value)" style="padding:4px; border:1px solid var(--border); border-radius:4px; width:155px;"></td>
-                <td><input type="text" value="${escapeHTML(e.desc)}" onchange="editEntretien('${veh.id}', '${e.id}', 'desc', this.value)" style="padding:4px; border:1px solid var(--border); border-radius:4px; width:100%;"></td>
-                <td><input class="cell-input" type="number" step="0.01" value="${e.montant}" onchange="editEntretien('${veh.id}', '${e.id}', 'montant', this.value)"></td>
-                <td><button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="delEntretien('${veh.id}', '${e.id}')">Suppr.</button></td>
-              </tr>
-            `).join("")}
+            ${(veh.entretiens || []).map(e => {
+              const eid = escapeHTML(e.id);
+              return `
+                <tr>
+                  <td><input type="date" value="${escapeHTML(e.date)}" data-action="edit-entretien" data-veh-id="${vid}" data-ent-id="${eid}" data-field="date" style="padding:4px; border:1px solid var(--border); border-radius:4px;"></td>
+                  <td><input type="text" value="${escapeHTML(e.type)}" data-action="edit-entretien" data-veh-id="${vid}" data-ent-id="${eid}" data-field="type" style="padding:4px; border:1px solid var(--border); border-radius:4px; width:155px;"></td>
+                  <td><input type="text" value="${escapeHTML(e.desc)}" data-action="edit-entretien" data-veh-id="${vid}" data-ent-id="${eid}" data-field="desc" style="padding:4px; border:1px solid var(--border); border-radius:4px; width:100%;"></td>
+                  <td><input class="cell-input" type="number" step="0.01" value="${e.montant}" data-action="edit-entretien" data-veh-id="${vid}" data-ent-id="${eid}" data-field="montant"></td>
+                  <td><button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" data-action="del-entretien" data-veh-id="${vid}" data-ent-id="${eid}">Suppr.</button></td>
+                </tr>
+              `;
+            }).join("")}
           </tbody>
         </table>
       </div>
@@ -2161,17 +2228,17 @@ function renderDepenses() {
 
 function updateDateService(vehId, val) {
   const v = db.vehicles.find(x => x.id === vehId);
-  if (v) { v.dateService = val; saveDB(); renderAll(); showToast("✅ Date mise à jour"); }
+  if (v) { v.dateService = val; saveDB(); markAllDirty(); renderActiveView(); showToast("✅ Date mise à jour"); }
 }
 
 function updateKmInitial(vehId, val) {
   const v = db.vehicles.find(x => x.id === vehId);
-  if (v) { v.kmInitial = parseFloat(val) || 0; saveDB(); renderAll(); showToast("✅ Compteur mis à jour"); }
+  if (v) { v.kmInitial = parseFloat(val) || 0; saveDB(); markAllDirty(); renderActiveView(); showToast("✅ Compteur mis à jour"); }
 }
 
 function updateFixe(vehId, field, val) {
   const v = db.vehicles.find(x => x.id === vehId);
-  if (v) { v.fraisFixes[field] = parseFloat(val) || 0; saveDB(); renderAll(); showToast("✅ Coût fixe enregistré"); }
+  if (v) { v.fraisFixes[field] = parseFloat(val) || 0; saveDB(); markAllDirty(); renderActiveView(); showToast("✅ Coût fixe enregistré"); }
 }
 
 function addAlerteConfig(vehId) {
@@ -2185,7 +2252,8 @@ function addAlerteConfig(vehId) {
   if (!v.alertesConfig) v.alertesConfig = [];
   v.alertesConfig.push({ id: "al_" + Date.now(), nom, intervalleKm, intervalleMois, dernierKm, derniereDate });
   saveDB();
-  renderAll();
+  markAllDirty();
+  renderActiveView();
   showToast("🔔 Alerte créée");
 }
 
@@ -2196,7 +2264,8 @@ function resetAlerte(vehId, alId) {
     al.dernierKm = getKmTotalVehicule(v);
     al.derniereDate = new Date().toISOString().slice(0, 10);
     saveDB();
-    renderAll();
+    markAllDirty();
+    renderActiveView();
     showToast("✅ Alerte réinitialisée");
   }
 }
@@ -2205,7 +2274,8 @@ function delAlerte(vehId, alId) {
   const v = db.vehicles.find(x => x.id === vehId);
   v.alertesConfig = (v.alertesConfig || []).filter(a => a.id !== alId);
   saveDB();
-  renderAll();
+  markAllDirty();
+  renderActiveView();
 }
 
 function addEntretien(vehId) {
@@ -2217,7 +2287,8 @@ function addEntretien(vehId) {
   if (!date || montant <= 0) return alert("Veuillez saisir une date et un montant valide.");
   v.entretiens.push({ id: "e_" + Date.now(), date, type, desc, montant });
   saveDB();
-  renderAll();
+  markAllDirty();
+  renderActiveView();
   showToast("✅ Dépense ajoutée");
 }
 
@@ -2227,9 +2298,9 @@ function editEntretien(vehId, entId, field, val) {
   if (!ent) return;
   ent[field] = field === "montant" ? (parseFloat(val) || 0) : val;
   saveDB();
-  renderDashboard();
-  renderDetails();
-  renderRentabilite();
+  dirtyTabs.add("dashboard");
+  dirtyTabs.add("details");
+  dirtyTabs.add("rentabilite");
   showToast("✅ Dépense modifiée");
 }
 
@@ -2237,11 +2308,12 @@ function delEntretien(vehId, entId) {
   const v = db.vehicles.find(x => x.id === vehId);
   v.entretiens = v.entretiens.filter(e => e.id !== entId);
   saveDB();
-  renderAll();
+  markAllDirty();
+  renderActiveView();
 }
 
 // ============================================================================
-// 6B. MODAL SAISIE RAPIDE DÉPENSE / LAVAGE (MOBILE & TERRAIN)
+// 6B. MODAL SAISIE RAPIDE DÉPENSE / LAVAGE
 // ============================================================================
 function openQuickExpenseModal() {
   if (db.vehicles.length === 0) {
@@ -2250,7 +2322,7 @@ function openQuickExpenseModal() {
     return;
   }
   const sel = document.getElementById("qeVehSelect");
-  sel.innerHTML = db.vehicles.map(v => `<option value="${v.id}">${escapeHTML(v.modele)} (${escapeHTML(v.immat)})</option>`).join("");
+  sel.innerHTML = db.vehicles.map(v => `<option value="${escapeHTML(v.id)}">${escapeHTML(v.modele)} (${escapeHTML(v.immat)})</option>`).join("");
   document.getElementById("qeDate").value = new Date().toISOString().slice(0, 10);
   document.getElementById("qeMontant").value = "";
   document.getElementById("qeDesc").value = "";
@@ -2296,7 +2368,8 @@ function saveQuickExpense() {
 
   saveDB();
   closeQuickExpenseModal();
-  renderAll();
+  markAllDirty();
+  renderActiveView();
   showToast(`✅ ${fmtEur(montant)} enregistré sur ${veh.modele}`);
 }
 
@@ -2305,13 +2378,14 @@ function saveQuickExpense() {
 // ============================================================================
 function renderRentabilite() {
   const year = db.year;
+  const entIndex = buildEntretiensIndex();
   let gTuro = 0, gGA = 0, gCA = 0, gChg = 0, gJL = 0, gJD = 0, gAchat = 0, gCG = 0, gRev = 0;
   let cardsHtml = "";
 
   db.vehicles.forEach(v => {
     let vTuro = 0, vGA = 0, vChg = 0, vJL = 0, vJD = 0;
     for (let m = 0; m < 12; m++) {
-      const l = getLigneMensuelle(v, year, m);
+      const l = getLigneMensuelle(v, year, m, entIndex);
       vTuro += l.caTuro; vGA += l.caGA; vChg += l.chargesTotal; vJL += l.joursLoues; vJD += l.joursDispo;
     }
     const vCA = vTuro + vGA;
@@ -2324,6 +2398,7 @@ function renderRentabilite() {
 
     const benefReel = vCA + revente - vChg - achat - cg;
     const roi = (achat + cg) > 0 ? benefReel / (achat + cg) : 0;
+    const vid = escapeHTML(v.id);
 
     gTuro += vTuro; gGA += vGA; gCA += vCA; gChg += vChg; gJL += vJL; gJD += vJD;
     gAchat += achat; gCG += cg; gRev += revente;
@@ -2334,21 +2409,21 @@ function renderRentabilite() {
           <span>VÉHICULE : ${escapeHTML(v.modele)} - ${escapeHTML(v.immat)}</span>
           <div style="display:flex; align-items:center; gap:10px;">
             <span>ROI : ${fmtPct(roi)}</span>
-            <button class="btn btn-danger" style="padding:4px 9px; font-size:0.78rem;" title="Supprimer ce véhicule" onclick="deleteVehicle('${v.id}')">🗑️</button>
+            <button class="btn btn-danger" style="padding:4px 9px; font-size:0.78rem;" title="Supprimer ce véhicule" data-action="delete-vehicle" data-veh-id="${vid}">🗑️</button>
           </div>
         </div>
         <div class="roi-body">
           <table>
-            <tr><td>Mise en service</td><td><input type="date" value="${v.dateService || `${year}-01-01`}" onchange="updateDateService('${v.id}', this.value)" style="padding:4px 7px; border:1px solid var(--border); border-radius:5px; background:var(--editable); font-weight:600;"></td></tr>
+            <tr><td>Mise en service</td><td><input type="date" value="${v.dateService || `${year}-01-01`}" data-action="update-date-service" data-veh-id="${vid}" style="padding:4px 7px; border:1px solid var(--border); border-radius:5px; background:var(--editable); font-weight:600;"></td></tr>
             <tr><td>CA Turo (€)</td><td>${fmtEur(vTuro)}</td></tr>
             <tr><td>CA Getaround (€)</td><td>${fmtEur(vGA)}</td></tr>
             <tr><td><b>Total CA (€)</b></td><td><b>${fmtEur(vCA)}</b></td></tr>
             <tr><td>Charges Total (€)</td><td>${fmtEur(vChg)}</td></tr>
             <tr><td>Bénéfice Net Exploitation (€)</td><td>${fmtEur(vBenExp)}</td></tr>
             <tr><td>Jours Loués / Dispo</td><td>${vJL} / ${vJD} (${fmtPct(vOcc)})</td></tr>
-            <tr><td>Coût d'achat (€) 🔒</td><td><input class="cell-input" type="number" step="0.01" value="${achat}" onchange="updateFixedAsset('${v.id}', 'achat', this.value)"></td></tr>
-            <tr><td>Carte grise (€) 🔒</td><td><input class="cell-input" type="number" step="0.01" value="${cg}" onchange="updateFixedAsset('${v.id}', 'carteGrise', this.value)"></td></tr>
-            <tr><td>Estimatif de revente (€) 🔒</td><td><input class="cell-input" type="number" step="0.01" value="${revente}" onchange="updateFixedAsset('${v.id}', 'revente', this.value)"></td></tr>
+            <tr><td>Coût d'achat (€) 🔒</td><td><input class="cell-input" type="number" step="0.01" value="${achat}" data-action="update-fixed-asset" data-veh-id="${vid}" data-field="achat"></td></tr>
+            <tr><td>Carte grise (€) 🔒</td><td><input class="cell-input" type="number" step="0.01" value="${cg}" data-action="update-fixed-asset" data-veh-id="${vid}" data-field="carteGrise"></td></tr>
+            <tr><td>Estimatif de revente (€) 🔒</td><td><input class="cell-input" type="number" step="0.01" value="${revente}" data-action="update-fixed-asset" data-veh-id="${vid}" data-field="revente"></td></tr>
             <tr><td>BÉNÉFICE RÉEL GLOBAL (€)</td><td>${fmtEur(benefReel)}</td></tr>
           </table>
         </div>
@@ -2411,7 +2486,8 @@ function saveNewVehicle() {
   });
   saveDB();
   closeAddModal();
-  renderAll();
+  markAllDirty();
+  renderActiveView();
   showToast(`✅ ${modele} ajouté à la flotte`);
 }
 
@@ -2424,7 +2500,8 @@ function deleteVehicle(vehId) {
     if (key.endsWith("_" + vehId)) delete db.mensuel[key];
   });
   saveDB();
-  renderAll();
+  markAllDirty();
+  renderActiveView();
   showToast("🗑️ Véhicule supprimé");
 }
 
@@ -2555,7 +2632,8 @@ function handleImportTuro(event) {
       }
     }
     saveDB();
-    renderAll();
+    markAllDirty();
+    renderActiveView();
     document.getElementById("turoLog").innerText = `✅ ${count} réservations Turo importées.`;
     showToast(`✅ ${count} réservations Turo importées`);
     event.target.value = "";
@@ -2614,7 +2692,8 @@ function handleImportGetaround(event) {
       }
     }
     saveDB();
-    renderAll();
+    markAllDirty();
+    renderActiveView();
     document.getElementById("gaLog").innerText = `✅ ${count} lignes Getaround importées.`;
     showToast(`✅ ${count} lignes Getaround importées`);
     event.target.value = "";
@@ -2642,7 +2721,8 @@ function restoreJSON(event) {
     try {
       db = JSON.parse(e.target.result);
       saveDB();
-      renderAll();
+      markAllDirty();
+      renderActiveView();
       showToast("✅ Base restaurée avec succès");
     } catch (err) {
       alert("Fichier JSON invalide.");
@@ -2652,10 +2732,11 @@ function restoreJSON(event) {
 }
 
 function exportCSV() {
+  const entIndex = buildEntretiensIndex();
   let csv = "Mois;Vehicule;Immatriculation;CA Turo;CA Getaround;Total CA;Charges;Benefice Net;Jours Loues;Jours Dispo\n";
   for (let m = 0; m < 12; m++) {
     db.vehicles.forEach(v => {
-      const l = getLigneMensuelle(v, db.year, m);
+      const l = getLigneMensuelle(v, db.year, m, entIndex);
       csv += `${MOIS[m]};${v.modele};${v.immat};${l.caTuro.toFixed(2)};${l.caGA.toFixed(2)};${l.caTotal.toFixed(2)};${l.chargesTotal.toFixed(2)};${l.benefice.toFixed(2)};${l.joursLoues};${l.joursDispo}\n`;
     });
   }
@@ -2668,9 +2749,83 @@ function exportCSV() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+// ============================================================================
+// 11. DÉLÉGATION D'ÉVÉNEMENTS CENTRALISÉE (ROBUSTE CONTRE LES APOSTROPHES)
+// ============================================================================
+document.addEventListener("click", (e) => {
+  const tabBtn = e.target.closest("[data-tab]");
+  if (tabBtn) {
+    showTab(tabBtn.dataset.tab);
+    return;
+  }
+
+  const actionEl = e.target.closest("[data-action]");
+  if (!actionEl) return;
+  const act = actionEl.dataset.action;
+
+  switch (act) {
+    case "go-dashboard": goDashboard(); break;
+    case "toggle-mobile-menu": toggleMobileMenu(); break;
+    case "open-add-modal": openAddModal(); break;
+    case "close-add-modal": closeAddModal(); break;
+    case "save-new-vehicle": saveNewVehicle(); break;
+    case "open-quick-expense": openQuickExpenseModal(); break;
+    case "close-quick-expense": closeQuickExpenseModal(); break;
+    case "save-quick-expense": saveQuickExpense(); break;
+    case "close-excel-map": closeExcelMapModal(); break;
+    case "execute-mapped-import": executeMappedExcelImport(); break;
+    case "trigger-excel-input": document.getElementById("excelFile")?.click(); break;
+    case "trigger-turo-input": document.getElementById("turoFile")?.click(); break;
+    case "trigger-ga-input": document.getElementById("gaFile")?.click(); break;
+    case "trigger-restore-input": document.getElementById("restoreFile")?.click(); break;
+    case "export-csv": exportCSV(); break;
+    case "backup-json": backupJSON(); break;
+    case "force-sync": forceSyncNow(); break;
+    case "logout": logoutUser(); break;
+    case "refresh-admin": loadAdminUsers(); break;
+    case "delete-vehicle": deleteVehicle(actionEl.dataset.vehId); break;
+    case "add-alerte": addAlerteConfig(actionEl.dataset.vehId); break;
+    case "reset-alerte": resetAlerte(actionEl.dataset.vehId, actionEl.dataset.alId); break;
+    case "del-alerte": delAlerte(actionEl.dataset.vehId, actionEl.dataset.alId); break;
+    case "add-entretien": addEntretien(actionEl.dataset.vehId); break;
+    case "del-entretien": delEntretien(actionEl.dataset.vehId, actionEl.dataset.entId); break;
+    case "toggle-user": toggleUserActive(actionEl.dataset.userId, actionEl.dataset.state === "true"); break;
+  }
+});
+
+document.addEventListener("change", (e) => {
+  const el = e.target;
+  if (el.id === "yearSelect") return changeYear(el.value);
+  if (el.id === "filterDetailMonth" || el.id === "filterDetailVeh") return renderDetails();
+  if (el.id === "depVehSelect") return renderDepenses();
+  if (el.id === "qeCatSelect") return onQuickCatChange();
+  if (el.id === "mapSheetSelect") return onMapSheetChange();
+  if (el.id === "mapImportType") return toggleMapFields();
+  if (el.id === "excelFile") return handleImportExcel(e);
+  if (el.id === "turoFile") return handleImportTuro(e);
+  if (el.id === "gaFile") return handleImportGetaround(e);
+  if (el.id === "restoreFile") return restoreJSON(e);
+
+  if (el.dataset.field === "nettoyage" && el.dataset.key) {
+    return updateNettoyage(el.dataset.key, el.value);
+  }
+
+  const act = el.dataset.action;
+  if (!act) return;
+  if (act === "update-date-service") updateDateService(el.dataset.vehId, el.value);
+  else if (act === "update-km-init") updateKmInitial(el.dataset.vehId, el.value);
+  else if (act === "update-fixe") updateFixe(el.dataset.vehId, el.dataset.field, el.value);
+  else if (act === "edit-entretien") editEntretien(el.dataset.vehId, el.dataset.entId, el.dataset.field, el.value);
+  else if (act === "update-fixed-asset") updateFixedAsset(el.dataset.vehId, el.dataset.field, el.value);
+});
+
+document.addEventListener("input", (e) => {
+  if (e.target.id === "adminSearchInput") renderAdminUsers();
+});
+
 if (!sb) {
   setCloudStatus("💻 Mode local (Supabase non configuré)");
-  renderAll();
+  renderActiveView(true);
 }
 </script>
 </body>

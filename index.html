@@ -33,7 +33,7 @@
   document.head.appendChild(link);
 })();
 </script>
-<!-- SheetJS pour lecture Excel (.xlsm / .xlsx / .xls) -->
+<!-- SheetJS pour lecture Excel (.xlsm / .xlsx / .xls / .csv) -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <!-- Chart.js pour les graphiques dynamiques -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -58,36 +58,41 @@
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
   body { background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
 
-  /* Sidebar */
+  /* Sidebar épurée */
   aside {
-    width: 270px; background: var(--primary); color: #fff; display: flex; flex-direction: column;
+    width: 265px; background: var(--primary); color: #fff; display: flex; flex-direction: column;
     padding: 20px 15px; position: fixed; height: 100vh; overflow-y: auto; z-index: 50;
   }
-  aside h1 { font-size: 1.2rem; margin-bottom: 5px; letter-spacing: 0.5px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-  aside .subtitle { font-size: 0.8rem; color: #cbd5e1; margin-bottom: 22px; }
+  aside h1 { font-size: 1.2rem; margin-bottom: 4px; letter-spacing: 0.5px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+  aside .subtitle { font-size: 0.78rem; color: #cbd5e1; margin-bottom: 20px; }
   .nav-btn {
     background: transparent; border: none; color: #e2e8f0; text-align: left;
-    padding: 11px 14px; border-radius: 8px; cursor: pointer; font-size: 0.93rem;
-    margin-bottom: 5px; transition: 0.2s; display: flex; align-items: center; gap: 10px;
+    padding: 11px 13px; border-radius: 8px; cursor: pointer; font-size: 0.92rem;
+    margin-bottom: 4px; transition: 0.2s; display: flex; align-items: center; justify-content: space-between; gap: 8px;
   }
   .nav-btn:hover, .nav-btn.active { background: rgba(255,255,255,0.16); color: #fff; font-weight: 600; }
-  .nav-btn.admin-nav { background: rgba(251, 191, 36, 0.16); border: 1px solid rgba(251, 191, 36, 0.4); color: #fde68a; }
+  .nav-btn.admin-nav { background: rgba(251, 191, 36, 0.16); border: 1px solid rgba(251, 191, 36, 0.4); color: #fde68a; margin-top: 6px; }
   .nav-btn.admin-nav:hover, .nav-btn.admin-nav.active { background: rgba(251, 191, 36, 0.3); color: #fff; }
-  .sidebar-footer { margin-top: auto; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column; gap: 7px; }
+  .nav-badge-alert {
+    background: #ef4444; color: #fff; font-size: 0.72rem; font-weight: 700;
+    padding: 2px 7px; border-radius: 999px;
+  }
+
+  .sidebar-footer { margin-top: auto; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column; gap: 8px; }
   .cloud-status {
     font-size: 0.78rem; padding: 7px 10px; border-radius: 7px;
     background: rgba(255,255,255,0.12); color: #f1f5f9; text-align: center; font-weight: 600;
   }
 
   /* Main */
-  main { margin-left: 270px; flex: 1; padding: 28px; max-width: calc(100vw - 270px); }
-  .header-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 24px; }
-  .header-bar h2 { color: var(--primary); font-size: 1.5rem; }
+  main { margin-left: 265px; flex: 1; padding: 26px 28px; max-width: calc(100vw - 265px); }
+  .header-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 22px; }
+  .header-bar h2 { color: var(--primary); font-size: 1.45rem; }
 
   /* Buttons */
   .btn {
-    border: none; padding: 10px 15px; border-radius: 7px; font-weight: 600; cursor: pointer;
-    font-size: 0.86rem; transition: 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    border: none; padding: 9px 14px; border-radius: 7px; font-weight: 600; cursor: pointer;
+    font-size: 0.85rem; transition: 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   }
   .btn:hover { opacity: 0.92; transform: translateY(-1px); }
   .btn-primary { background: var(--primary-light); color: #fff; }
@@ -98,46 +103,73 @@
   .btn-danger { background: var(--danger); color: #fff; }
   .btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
 
+  /* Onboarding / État vide */
+  .onboarding-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
+    border: 2px dashed #93c5fd; border-radius: 14px; padding: 36px 24px;
+    text-align: center; margin-bottom: 24px;
+  }
+  .onboarding-card h3 { color: var(--primary); font-size: 1.35rem; margin-bottom: 8px; }
+  .onboarding-card p { color: var(--muted); max-width: 540px; margin: 0 auto 20px; font-size: 0.95rem; line-height: 1.5; }
+  .onboarding-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+
   /* Alerts */
   .alert-banner { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-  .alert-item { padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .alert-item { padding: 11px 16px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
   .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
   .alert-warn { background: #fef3c7; color: #92400e; border: 1px solid #fbbf24; }
 
   /* Cards & KPIs */
-  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-  .kpi-card { background: var(--card); padding: 18px; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-  .kpi-card .label { font-size: 0.8rem; color: var(--muted); font-weight: 600; text-transform: uppercase; }
-  .kpi-card .value { font-size: 1.55rem; font-weight: 700; color: var(--primary); margin-top: 6px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); gap: 15px; margin-bottom: 22px; }
+  .kpi-card { background: var(--card); padding: 16px 18px; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .kpi-card .label { font-size: 0.78rem; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+  .kpi-card .value { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-top: 5px; }
+  .kpi-card .sub-kpi { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
   .kpi-card.highlight { background: #e2efda; border-color: #b7d7a8; }
   .kpi-card.highlight .value { color: #274e13; }
+  .kpi-card.highlight .sub-kpi { color: #38761d; font-weight: 600; }
 
   .card { background: var(--card); border-radius: 10px; border: 1px solid var(--border); padding: 20px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-  .card h3 { color: var(--primary); margin-bottom: 14px; font-size: 1.1rem; }
+  .card h3 { color: var(--primary); margin-bottom: 14px; font-size: 1.08rem; }
+
+  /* Filter Toolbar */
+  .filter-bar {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    background: #f8fafc; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+  .filter-bar label { font-size: 0.84rem; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 6px; }
+  .filter-bar select { padding: 7px 11px; border-radius: 6px; border: 1px solid var(--border); background: #fff; font-weight: 600; font-size: 0.86rem; }
+
+  /* Progress Bar Occupation */
+  .occ-cell { display: flex; flex-direction: column; gap: 4px; min-width: 115px; }
+  .occ-text { font-size: 0.82rem; font-weight: 600; display: flex; justify-content: space-between; }
+  .occ-track { width: 100%; height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+  .occ-fill { height: 100%; border-radius: 999px; transition: width 0.3s ease; }
 
   /* Charts Grid */
   .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 22px; }
-  .chart-box { position: relative; height: 300px; width: 100%; }
-  .chart-box-sm { position: relative; height: 260px; width: 100%; }
+  .chart-box { position: relative; height: 290px; width: 100%; }
+  .chart-box-sm { position: relative; height: 250px; width: 100%; }
 
   /* Tables */
   .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-  th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+  th, td { padding: 9px 11px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
   th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
   th { background: var(--primary); color: #fff; font-weight: 600; }
   tr.total-row { background: #e2efda; font-weight: 700; }
   tr.month-header { background: #e8eef5; font-weight: 700; color: var(--primary); }
-  tr.inactive-row { opacity: 0.55; background: #f8fafc; }
+  tr.inactive-row { opacity: 0.5; background: #f8fafc; }
   input.cell-input {
-    width: 110px; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 5px;
-    background: var(--editable); text-align: right; font-weight: 600; font-size: 0.88rem;
+    width: 100px; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 5px;
+    background: var(--editable); text-align: right; font-weight: 600; font-size: 0.87rem;
   }
   input.cell-input:focus { outline: 2px solid var(--primary-light); background: #fff; }
 
   /* Détails Mensuels : Volets figés */
   .details-scroll-box {
-    max-height: 74vh; overflow: auto; position: relative;
+    max-height: 70vh; overflow: auto; position: relative;
     border: 1px solid var(--border); border-radius: 8px; scroll-behavior: smooth;
   }
   .details-scroll-box table { border-collapse: separate; border-spacing: 0; }
@@ -153,28 +185,12 @@
   .details-scroll-box tr.month-header td { position: sticky; left: 0; z-index: 11; background: #e8eef5; }
   .details-scroll-box tr.inactive-row td:first-child { background: #f8fafc; }
 
-  /* Barre flottante de navigation Gauche / Droite */
-  .h-scroll-controls {
-    position: fixed; bottom: 22px; right: 26px; z-index: 90; display: none;
-    align-items: center; gap: 8px; background: rgba(30, 41, 59, 0.92);
-    backdrop-filter: blur(6px); padding: 8px 12px; border-radius: 999px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.15);
-  }
-  #details.active .h-scroll-controls { display: flex; }
-  .h-scroll-btn {
-    background: #2e75b6; color: #fff; border: none; border-radius: 999px;
-    padding: 7px 13px; font-size: 0.84rem; font-weight: 700; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 5px; transition: 0.15s;
-  }
-  .h-scroll-btn:hover { background: #3b82f6; transform: scale(1.03); }
-  .h-scroll-btn:active { transform: scale(0.97); }
-
   /* Sections */
   .section { display: none; }
   .section.active { display: block; }
 
   /* Rentabilité Fiches */
-  .roi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; }
+  .roi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(335px, 1fr)); gap: 20px; }
   .roi-card { background: #fff; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
   .roi-header { background: #4472c4; color: #fff; padding: 12px 16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
   .roi-body table td { padding: 8px 14px; }
@@ -182,30 +198,48 @@
 
   /* Modal */
   .modal-backdrop {
-    display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.5);
-    justify-content: center; align-items: center; z-index: 100;
+    display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.55);
+    justify-content: center; align-items: center; z-index: 150;
   }
   .modal-backdrop.open { display: flex; }
-  .modal { background: #fff; padding: 24px; border-radius: 12px; width: 440px; max-width: 92vw; }
-  .modal h3 { margin-bottom: 16px; color: var(--primary); }
+  .modal { background: #fff; padding: 24px; border-radius: 12px; width: 450px; max-width: 94vw; max-height: 92vh; overflow-y: auto; }
+  .modal h3 { margin-bottom: 14px; color: var(--primary); }
   .form-group { margin-bottom: 12px; }
-  .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
-  .form-group input, .form-group select { width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 6px; }
+  .form-group label { display: block; font-size: 0.84rem; font-weight: 600; margin-bottom: 4px; }
+  .form-group input, .form-group select { width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; }
   .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
 
-  /* Import Dropzone */
-  .drop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+  /* Import & Backup Grid */
+  .drop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(275px, 1fr)); gap: 18px; }
   .drop-box {
-    border: 2px dashed var(--border); border-radius: 10px; padding: 24px; text-align: center;
+    border: 2px dashed var(--border); border-radius: 10px; padding: 22px; text-align: center;
     background: #fafbfc; transition: 0.2s; display: flex; flex-direction: column; justify-content: space-between;
   }
   .drop-box:hover { border-color: var(--primary-light); background: #f0f7ff; }
   .drop-box.excel-box { border-color: #a3cfbb; background: #f2fbf6; }
-  .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 700; }
+  .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.77rem; font-weight: 700; }
   .badge-ok { background: #dcfce7; color: #166534; }
   .badge-warn { background: #fef3c7; color: #92400e; }
   .badge-danger { background: #fee2e2; color: #991b1b; }
   .badge-admin { background: #e0e7ff; color: #3730a3; }
+
+  /* Toast Notification */
+  .toast-notif {
+    position: fixed; bottom: 24px; left: 285px; background: #1e293b; color: #fff;
+    padding: 10px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 200; opacity: 0; pointer-events: none;
+    transform: translateY(10px); transition: 0.25s ease;
+  }
+  .toast-notif.show { opacity: 1; transform: translateY(0); }
+
+  /* Bouton d'action rapide flottant (FAB) */
+  .fab-expense {
+    position: fixed; bottom: 24px; right: 24px; background: var(--accent); color: #fff;
+    border: none; border-radius: 999px; padding: 12px 18px; font-size: 0.9rem; font-weight: 700;
+    box-shadow: 0 8px 20px rgba(46, 117, 89, 0.35); cursor: pointer; z-index: 85;
+    display: flex; align-items: center; gap: 7px; transition: 0.2s;
+  }
+  .fab-expense:hover { transform: translateY(-2px); filter: brightness(1.06); }
 
   /* Auth & Reset Screens */
   .auth-overlay {
@@ -221,56 +255,88 @@
     font-size: 0.95rem; margin-bottom: 10px; outline: none;
   }
 
-  /* Mobile */
+  /* Mobile Bottom Navigation Bar */
   .mobile-bar { display: none; }
+  .mobile-bottom-nav { display: none; }
+
   @media (max-width: 950px) {
-    body { flex-direction: column; }
+    body { flex-direction: column; padding-bottom: 72px; }
     .mobile-bar {
       display: flex; justify-content: space-between; align-items: center;
       background: var(--primary); color: #fff; padding: 12px 16px; position: sticky; top: 0; z-index: 60;
     }
-    .mobile-bar button { background: rgba(255,255,255,0.18); border: none; color: #fff; padding: 8px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; }
-    aside { position: relative; width: 100%; height: auto; display: none; padding-top: 10px; }
+    .mobile-bar button { background: rgba(255,255,255,0.18); border: none; color: #fff; padding: 7px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    aside { position: fixed; inset: 0; width: 100%; height: 100vh; display: none; z-index: 120; padding-top: 20px; }
     aside.mobile-open { display: flex; }
-    aside h1, aside .subtitle { display: none; }
     main { margin-left: 0; max-width: 100%; padding: 16px; }
     .charts-grid { grid-template-columns: 1fr; }
+    .toast-notif { left: 16px; right: 16px; bottom: 82px; text-align: center; }
+    .fab-expense { bottom: 78px; right: 16px; padding: 11px 15px; font-size: 0.84rem; }
+
+    .mobile-bottom-nav {
+      display: flex; position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
+      background: #ffffff; border-top: 1px solid var(--border); z-index: 95;
+      justify-content: space-around; align-items: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+    }
+    .m-nav-item {
+      background: none; border: none; color: var(--muted); font-size: 0.72rem; font-weight: 600;
+      display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 6px 10px;
+    }
+    .m-nav-item span.ico { font-size: 1.25rem; }
+    .m-nav-item.active { color: var(--primary); font-weight: 700; }
   }
 </style>
 </head>
 <body>
 
 <div class="mobile-bar">
-  <span onclick="goDashboard()" style="font-weight:700; font-size:1.05rem; cursor:pointer; display:inline-flex; align-items:center; gap:8px;" title="Retour au Tableau de Bord">🚗 Flotte Gérance</span>
-  <button type="button" onclick="toggleMobileMenu()">☰ Menu</button>
+  <span onclick="goDashboard()" style="font-weight:700; font-size:1.05rem; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">🚗 Flotte Gérance</span>
+  <button type="button" onclick="toggleMobileMenu()">☰ Plus</button>
 </div>
 
 <aside id="sidebar">
-  <div>
-    <h1 onclick="goDashboard()">🚗 Flotte Gérance</h1>
-    <div class="subtitle">Suivi Turo & Getaround • Cloud Sync</div>
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <h1 onclick="goDashboard()">🚗 Flotte Gérance</h1>
+      <div class="subtitle">Suivi Turo & Getaround • Cloud Sync</div>
+    </div>
+    <button type="button" onclick="toggleMobileMenu()" class="mobile-bar" style="background:rgba(255,255,255,0.2); border:none; color:#fff; padding:6px 10px; border-radius:6px;">✕</button>
   </div>
-  <button class="nav-btn active" onclick="showTab('dashboard', this)">📊 Tableau de Bord</button>
-  <button class="nav-btn" onclick="showTab('details', this)">📅 Détails Mensuels</button>
-  <button class="nav-btn" onclick="showTab('depenses', this)">🔧 Dépenses & Entretien</button>
-  <button class="nav-btn" onclick="showTab('rentabilite', this)">💰 Rentabilité & ROI (Figé)</button>
-  <button class="nav-btn" onclick="showTab('imports', this)">📥 Imports Excel / CSV</button>
-  <!-- Bouton Back-Office visible uniquement pour l'administrateur -->
-  <button id="navAdminBtn" class="nav-btn admin-nav" style="display:none;" onclick="showTab('admin', this)">🛡️ Back-Office Utilisateurs</button>
+
+  <button class="nav-btn active" data-tab="dashboard" onclick="showTab('dashboard', this)"><span>📊 Tableau de Bord</span></button>
+  <button class="nav-btn" data-tab="details" onclick="showTab('details', this)"><span>📅 Détails Mensuels</span></button>
+  <button class="nav-btn" data-tab="depenses" onclick="showTab('depenses', this)">
+    <span>🔧 Dépenses & Entretien</span>
+    <span id="navAlertBadge" class="nav-badge-alert" style="display:none;">0</span>
+  </button>
+  <button class="nav-btn" data-tab="rentabilite" onclick="showTab('rentabilite', this)"><span>💰 Rentabilité & ROI</span></button>
+  <button class="nav-btn" data-tab="imports" onclick="showTab('imports', this)"><span>📥 Imports / Sauvegardes</span></button>
+  <button id="navAdminBtn" class="nav-btn admin-nav" data-tab="admin" style="display:none;" onclick="showTab('admin', this)"><span>🛡️ Back-Office Admin</span></button>
 
   <div class="sidebar-footer">
+    <button class="btn btn-primary" onclick="openAddModal()">➕ Ajouter un Véhicule</button>
+    <button class="btn btn-excel" onclick="document.getElementById('excelFile').click()">📗 Importer Excel / CSV</button>
+    <input type="file" id="excelFile" accept=".xlsm,.xlsx,.xls,.csv" style="display:none" onchange="handleImportExcel(event)">
     <div id="cloudStatus" class="cloud-status">☁️ Connexion Cloud...</div>
     <div id="userEmailDisplay" style="font-size:0.75rem; color:#cbd5e1; text-align:center; word-break:break-all;"></div>
     <button class="btn btn-danger" onclick="logoutUser()" style="padding:7px 10px; font-size:0.8rem;">🚪 Se déconnecter</button>
-    <button class="btn btn-excel" onclick="document.getElementById('excelFile').click()">📗 Importer mon Excel (.xlsm)</button>
-    <input type="file" id="excelFile" accept=".xlsm,.xlsx,.xls" style="display:none" onchange="handleImportExcel(event)">
-    <button class="btn btn-primary" onclick="openAddModal()">➕ Ajouter un Véhicule</button>
-    <button class="btn btn-outline" onclick="exportCSV()">📤 Exporter vers Excel (.csv)</button>
-    <button class="btn btn-outline" onclick="backupJSON()">💾 Sauvegarder Base (.json)</button>
-    <button class="btn btn-outline" onclick="document.getElementById('restoreFile').click()">📂 Restaurer Base (.json)</button>
-    <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreJSON(event)">
   </div>
 </aside>
+
+<!-- Barre de navigation rapide mobile (en bas) -->
+<nav class="mobile-bottom-nav">
+  <button class="m-nav-item active" data-tab="dashboard" onclick="showTab('dashboard', this)"><span class="ico">📊</span><span>Bord</span></button>
+  <button class="m-nav-item" data-tab="details" onclick="showTab('details', this)"><span class="ico">📅</span><span>Mois</span></button>
+  <button class="m-nav-item" data-tab="depenses" onclick="showTab('depenses', this)"><span class="ico">🔧</span><span>Frais</span></button>
+  <button class="m-nav-item" data-tab="rentabilite" onclick="showTab('rentabilite', this)"><span class="ico">💰</span><span>ROI</span></button>
+  <button class="m-nav-item" data-tab="imports" onclick="showTab('imports', this)"><span class="ico">📥</span><span>Import</span></button>
+</nav>
+
+<!-- Bouton flottant saisie rapide dépense -->
+<button type="button" class="fab-expense" onclick="openQuickExpenseModal()" title="Saisir rapidement une dépense ou un lavage">⚡ + Dépense rapide</button>
+
+<!-- Notification Toast -->
+<div id="toastNotif" class="toast-notif">✅ Enregistré</div>
 
 <main>
   <!-- 1. TABLEAU DE BORD & GRAPHIQUES -->
@@ -279,44 +345,51 @@
       <h2>Tableau de Bord & Synthèse Annuelle</h2>
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
         <button class="btn btn-outline" onclick="forceSyncNow()" title="Forcer la synchronisation PC / Téléphone">🔄 Synchroniser</button>
-        <button class="btn btn-excel" onclick="document.getElementById('excelFile').click()">📗 Charger Excel (.xlsm)</button>
-        <select id="yearSelect" onchange="changeYear(this.value)" style="padding:8px 12px; border-radius:6px; border:1px solid var(--border); font-weight:600;">
-          <option value="2025">Année 2025</option>
-          <option value="2026" selected>Année 2026</option>
-          <option value="2027">Année 2027</option>
-        </select>
+        <select id="yearSelect" onchange="changeYear(this.value)" style="padding:8px 12px; border-radius:6px; border:1px solid var(--border); font-weight:600;"></select>
+      </div>
+    </div>
+
+    <!-- Écran d'accueil guidé si 0 véhicule -->
+    <div id="onboardingBox" class="onboarding-card" style="display:none;">
+      <h3>👋 Bienvenue sur Flotte Gérance !</h3>
+      <p>Votre parc automobile est actuellement vide. Importez directement votre fichier Excel existant ou créez votre premier véhicule pour démarrer le suivi Turo & Getaround.</p>
+      <div class="onboarding-actions">
+        <button class="btn btn-excel" style="padding:12px 20px; font-size:0.95rem;" onclick="document.getElementById('excelFile').click()">📗 Importer mon fichier Excel (.xlsm / .xlsx)</button>
+        <button class="btn btn-primary" style="padding:12px 20px; font-size:0.95rem;" onclick="openAddModal()">➕ Ajouter mon premier véhicule</button>
       </div>
     </div>
 
     <div id="dashAlerts" class="alert-banner"></div>
     <div class="kpi-grid" id="dashKpis"></div>
 
-    <div class="charts-grid">
-      <div class="card" style="margin-bottom:0;">
-        <h3>📈 Évolution Mensuelle : CA, Charges & Bénéfice Net</h3>
-        <div class="chart-box">
-          <canvas id="chartMensuel"></canvas>
+    <div id="dashMainContent">
+      <div class="charts-grid">
+        <div class="card" style="margin-bottom:0;">
+          <h3>📈 Évolution Mensuelle : CA, Charges & Bénéfice Net</h3>
+          <div class="chart-box">
+            <canvas id="chartMensuel"></canvas>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:0;">
+          <h3>🍩 Répartition Turo vs Getaround</h3>
+          <div class="chart-box">
+            <canvas id="chartPlateformes"></canvas>
+          </div>
         </div>
       </div>
-      <div class="card" style="margin-bottom:0;">
-        <h3>🍩 Répartition Turo vs Getaround</h3>
-        <div class="chart-box">
-          <canvas id="chartPlateformes"></canvas>
+
+      <div class="card">
+        <h3>🏆 Comparatif Bénéfice Net par Véhicule</h3>
+        <div class="chart-box-sm">
+          <canvas id="chartVehicules"></canvas>
         </div>
       </div>
-    </div>
 
-    <div class="card">
-      <h3>🏆 Comparatif Bénéfice Net par Véhicule</h3>
-      <div class="chart-box-sm">
-        <canvas id="chartVehicules"></canvas>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Synthèse Annuelle de la Flotte</h3>
-      <div class="table-wrap">
-        <table id="syntheseTable"></table>
+      <div class="card">
+        <h3>Synthèse Annuelle de la Flotte</h3>
+        <div class="table-wrap">
+          <table id="syntheseTable"></table>
+        </div>
       </div>
     </div>
   </section>
@@ -328,19 +401,23 @@
       <button class="btn btn-primary" onclick="openAddModal()">➕ Ajouter un Véhicule</button>
     </div>
     <div class="card">
-      <p style="font-size:0.85rem; color:var(--muted); margin-bottom:12px;">
-        Les lignes grisées correspondent aux mois précédant la <b>date de mise en service</b> du véhicule (charges fixes et jours dispo automatiquement à 0). Le nettoyage (colonne jaune) est modifiable directement.
-      </p>
+      <div class="filter-bar">
+        <label>📅 Période :
+          <select id="filterDetailMonth" onchange="renderDetails()">
+            <option value="all">Tous les mois (Année complète)</option>
+          </select>
+        </label>
+        <label>🚗 Véhicule :
+          <select id="filterDetailVeh" onchange="renderDetails()">
+            <option value="all">Toute la flotte</option>
+          </select>
+        </label>
+        <span style="font-size:0.8rem; color:var(--muted); margin-left:auto;">💡 Modifiez le nettoyage directement dans les cases jaunes</span>
+      </div>
+
       <div class="details-scroll-box" id="detailsScrollBox">
         <table id="detailsTable"></table>
       </div>
-    </div>
-
-    <div class="h-scroll-controls" title="Défilement horizontal rapide du tableau">
-      <button type="button" class="h-scroll-btn" onclick="scrollDetailsX(-9999)" title="Tout à gauche">⏮ Début</button>
-      <button type="button" class="h-scroll-btn" onclick="scrollDetailsX(-320)" title="Défiler vers la gauche">◀ Gauche</button>
-      <button type="button" class="h-scroll-btn" onclick="scrollDetailsX(320)" title="Défiler vers la droite">Droite ▶</button>
-      <button type="button" class="h-scroll-btn" onclick="scrollDetailsX(9999)" title="Tout à droite">Fin ⏭</button>
     </div>
   </section>
 
@@ -370,21 +447,21 @@
     <div class="roi-grid" id="vehRoiCards"></div>
   </section>
 
-  <!-- 5. IMPORTS EXCEL & CSV TURO / GETAROUND -->
+  <!-- 5. IMPORTS EXCEL, CSV & SAUVEGARDES -->
   <section id="imports" class="section">
     <div class="header-bar">
-      <h2>Importation depuis Excel, Turo & Getaround</h2>
+      <h2>Imports, Exports & Sauvegardes</h2>
     </div>
     <div class="drop-grid">
       <div class="drop-box excel-box">
         <div>
-          <h3 style="color:var(--excel); margin-bottom:8px;">📗 Migration depuis ton Excel (.xlsm)</h3>
+          <h3 style="color:var(--excel); margin-bottom:8px;">📗 Importer un fichier Excel / CSV</h3>
           <p style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">
-            Importe en 1 clic tous tes véhicules, revenus mensuels, onglets <b>Dep [IMMAT]</b>, coûts fixes, entretiens et prix d'achat/carte grise.
+            Compatible avec ton classeur historique <b>.xlsm</b> ET tout autre tableau <b>.xlsx / .csv</b> grâce à l'assistant de correspondance des colonnes.
           </p>
         </div>
         <div>
-          <button class="btn btn-excel" onclick="document.getElementById('excelFile').click()">Choisir mon fichier Excel (.xlsm / .xlsx)</button>
+          <button class="btn btn-excel" onclick="document.getElementById('excelFile').click()">Choisir un fichier Excel / CSV</button>
           <div id="excelLog" style="margin-top:12px; font-size:0.85rem; font-weight:600; color:var(--excel);"></div>
         </div>
       </div>
@@ -398,7 +475,7 @@
         </div>
         <div>
           <input type="file" id="turoFile" accept=".csv,.xlsx,.xls,.txt" style="display:none" onchange="handleImportTuro(event)">
-          <button class="btn btn-turo" onclick="document.getElementById('turoFile').click()">Importer fichier Turo (.csv / .xlsx)</button>
+          <button class="btn btn-turo" onclick="document.getElementById('turoFile').click()">Importer fichier Turo</button>
           <div id="turoLog" style="margin-top:12px; font-size:0.85rem; font-weight:600;"></div>
         </div>
       </div>
@@ -412,8 +489,23 @@
         </div>
         <div>
           <input type="file" id="gaFile" accept=".xlsx,.xls,.csv,.txt" style="display:none" onchange="handleImportGetaround(event)">
-          <button class="btn btn-ga" onclick="document.getElementById('gaFile').click()">Importer fichier Getaround (.xlsx / .csv)</button>
+          <button class="btn btn-ga" onclick="document.getElementById('gaFile').click()">Importer fichier Getaround</button>
           <div id="gaLog" style="margin-top:12px; font-size:0.85rem; font-weight:600;"></div>
+        </div>
+      </div>
+
+      <div class="drop-box">
+        <div>
+          <h3 style="color:var(--primary); margin-bottom:8px;">💾 Exports & Sauvegarde Locale</h3>
+          <p style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">
+            Exporte tes résultats annuels vers Excel (.csv) ou télécharge une copie de sauvegarde complète (.json) de ta base.
+          </p>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="btn btn-outline" onclick="exportCSV()">📤 Exporter bilan annuel (.csv)</button>
+          <button class="btn btn-outline" onclick="backupJSON()">💾 Sauvegarder base (.json)</button>
+          <button class="btn btn-outline" onclick="document.getElementById('restoreFile').click()">📂 Restaurer base (.json)</button>
+          <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreJSON(event)">
         </div>
       </div>
     </div>
@@ -434,7 +526,7 @@
     <div class="card">
       <h3>Liste des comptes inscrits</h3>
       <p style="font-size:0.85rem; color:var(--muted); margin-bottom:14px;">
-        Un utilisateur désactivé est immédiatement bloqué et déconnecté de l'application lors de sa prochaine action ou connexion.
+        Un utilisateur désactivé est immédiatement bloqué et déconnecté de l'application.
       </p>
       <div class="table-wrap">
         <table id="adminUsersTable"></table>
@@ -482,6 +574,84 @@
   </div>
 </div>
 
+<!-- MODAL SAISIE RAPIDE DÉPENSE / LAVAGE -->
+<div class="modal-backdrop" id="quickExpenseModal">
+  <div class="modal">
+    <h3>⚡ Saisie Rapide Dépense / Nettoyage</h3>
+    <div class="form-group">
+      <label>Véhicule concerné</label>
+      <select id="qeVehSelect"></select>
+    </div>
+    <div class="form-group">
+      <label>Catégorie</label>
+      <select id="qeCatSelect" onchange="onQuickCatChange()">
+        <option value="nettoyage">🧽 Nettoyage / Lavage (ajouté au mois)</option>
+        <option value="Vidange / Révision">🛢️ Vidange / Révision</option>
+        <option value="Pneumatiques">🛞 Pneumatiques</option>
+        <option value="Réparation mécanique">🛠️ Réparation mécanique / Carrosserie</option>
+        <option value="Contrôle Technique">📋 Contrôle Technique</option>
+        <option value="Carburant / Divers">⛽ Carburant / Péage / Divers</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="qeDate">
+    </div>
+    <div class="form-group" id="qeDescGroup" style="display:none;">
+      <label>Garage / Description</label>
+      <input type="text" id="qeDesc" placeholder="Ex: Station Total, Norauto, Pièce...">
+    </div>
+    <div class="form-group">
+      <label>Montant TTC (€)</label>
+      <input type="number" id="qeMontant" step="0.01" placeholder="0.00">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeQuickExpenseModal()">Annuler</button>
+      <button class="btn btn-success" onclick="saveQuickExpense()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL IMPORT EXCEL UNIVERSEL (MAPPING DE COLONNES) -->
+<div class="modal-backdrop" id="excelMapModal">
+  <div class="modal" style="width: 560px; max-width: 95vw;">
+    <h3>📗 Assistant d'Import Excel Universel</h3>
+    <p style="font-size:0.84rem; color:var(--muted); margin-bottom:14px;">
+      Associez ci-dessous les colonnes de votre tableau Excel / CSV :
+    </p>
+
+    <div class="form-group">
+      <label>1. Onglet à importer</label>
+      <select id="mapSheetSelect" onchange="onMapSheetChange()"></select>
+    </div>
+
+    <div class="form-group">
+      <label>2. Type de données dans cet onglet</label>
+      <select id="mapImportType" onchange="toggleMapFields()">
+        <option value="mensuel">📅 Revenus & Locations (Mois / Véhicules / CA)</option>
+        <option value="vehicules">🚗 Liste de Véhicules (Parc / Achats / Coûts fixes)</option>
+        <option value="depenses">🔧 Dépenses & Entretiens ponctuels</option>
+      </select>
+    </div>
+
+    <div id="mapFieldsContainer" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px;"></div>
+
+    <div class="form-group" style="margin-top:14px; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid var(--border);">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+        <input type="checkbox" id="mapMergeMode" checked style="width:auto;">
+        <span>Fusionner avec ma flotte actuelle (conserver mes véhicules existants)</span>
+      </label>
+    </div>
+
+    <div id="mapPreviewBox" style="margin-top:10px; font-size:0.8rem; color:var(--muted);"></div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeExcelMapModal()">Annuler</button>
+      <button class="btn btn-excel" onclick="executeMappedExcelImport()">✅ Lancer l'importation</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ============================================================================
 // 0. CONFIGURATION CLOUD SUPABASE & AUTHENTIFICATION MULTI-UTILISATEURS
@@ -510,13 +680,23 @@ function escapeHTML(str) {
     .replace(/"/g, "&quot;");
 }
 
+let toastTimer = null;
+function showToast(msg = "✅ Enregistré") {
+  const el = document.getElementById("toastNotif");
+  if (!el) return;
+  el.innerText = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+}
+
 // ============================================================================
 // 1. DONNÉES & SYNCHRONISATION SUPABASE ISOLÉE PAR UTILISATEUR
 // ============================================================================
 const MOIS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
 
 let db = {
-  year: 2026,
+  year: new Date().getFullYear(),
   vehicles: [],
   mensuel: {}
 };
@@ -525,6 +705,28 @@ let chartMensuelInstance = null;
 let chartPlateformesInstance = null;
 let chartVehiculesInstance = null;
 let syncTimer = null;
+
+function initDynamicSelectors() {
+  const curYear = new Date().getFullYear();
+  const yearSel = document.getElementById("yearSelect");
+  if (yearSel) {
+    let opts = "";
+    for (let y = curYear - 2; y <= curYear + 2; y++) {
+      opts += `<option value="${y}" ${y === db.year ? "selected" : ""}>Année ${y}</option>`;
+    }
+    yearSel.innerHTML = opts;
+  }
+
+  const mSel = document.getElementById("filterDetailMonth");
+  if (mSel && mSel.options.length <= 1) {
+    MOIS.forEach((m, idx) => {
+      const opt = document.createElement("option");
+      opt.value = String(idx);
+      opt.textContent = m;
+      mSel.appendChild(opt);
+    });
+  }
+}
 
 function setCloudStatus(txt) {
   const el = document.getElementById("cloudStatus");
@@ -658,7 +860,6 @@ function showResetPasswordModal() {
   };
 }
 
-// Vérifie si l'utilisateur est actif et s'il est administrateur
 async function verifyUserProfile(user) {
   if (!sb || !user) return { active: true, admin: false };
   const { data, error } = await sb
@@ -672,7 +873,6 @@ async function verifyUserProfile(user) {
     return { active: true, admin: false };
   }
   if (!data) {
-    // Crée le profil s'il n'existait pas encore
     await sb.from("profiles").insert({ id: user.id, email: user.email, is_active: true, is_admin: false });
     return { active: true, admin: false };
   }
@@ -685,7 +885,7 @@ async function logoutUser(reasonMsg = "") {
   const adminBtn = document.getElementById("navAdminBtn");
   if (adminBtn) adminBtn.style.display = "none";
   if (sb) await sb.auth.signOut();
-  db = { year: 2026, vehicles: [], mensuel: {} };
+  db = { year: new Date().getFullYear(), vehicles: [], mensuel: {} };
   renderAll();
   if (reasonMsg) {
     const old = document.getElementById("authScreen");
@@ -733,7 +933,7 @@ async function loadFromCloud() {
     const heure = new Date(data.updated_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
     setCloudStatus(`☁️ Synchronisé (${heure})`);
   } else {
-    db = JSON.parse(localStorage.getItem(getStorageKey())) || { year: 2026, vehicles: [], mensuel: {} };
+    db = JSON.parse(localStorage.getItem(getStorageKey())) || { year: new Date().getFullYear(), vehicles: [], mensuel: {} };
     await pushToCloud();
     renderAll();
   }
@@ -745,6 +945,7 @@ function forceSyncNow() {
   } else {
     loadFromCloud();
   }
+  showToast("🔄 Synchronisation lancée");
 }
 
 function saveDB() {
@@ -800,7 +1001,7 @@ if (sb) {
       const emailEl = document.getElementById("userEmailDisplay");
       if (emailEl) emailEl.innerText = (isCurrentUserAdmin ? "🛡️ " : "👤 ") + currentUser.email;
 
-      db = JSON.parse(localStorage.getItem(getStorageKey())) || { year: 2026, vehicles: [], mensuel: {} };
+      db = JSON.parse(localStorage.getItem(getStorageKey())) || { year: new Date().getFullYear(), vehicles: [], mensuel: {} };
       renderAll();
       loadFromCloud();
       subscribeRealtime();
@@ -829,7 +1030,7 @@ async function loadAdminUsers() {
   ]);
 
   if (profRes.error) {
-    if (tableEl) tableEl.innerHTML = `<tbody><tr><td style="color:#c00000;padding:16px;">Erreur SQL : ${escapeHTML(profRes.error.message)} (Vérifiez que le script SQL de la table profiles a bien été exécuté).</td></tr></tbody>`;
+    if (tableEl) tableEl.innerHTML = `<tbody><tr><td style="color:#c00000;padding:16px;">Erreur SQL : ${escapeHTML(profRes.error.message)}</td></tr></tbody>`;
     return;
   }
 
@@ -950,6 +1151,7 @@ async function toggleUserActive(targetUserId, newState) {
 
   target.is_active = newState;
   renderAdminUsers();
+  showToast(newState ? "✅ Compte activé" : "⛔ Compte désactivé");
 }
 
 // ============================================================================
@@ -1041,8 +1243,11 @@ function getAlertesVehicule(veh) {
 }
 
 // ============================================================================
-// 3. IMPORTATION FICHIER EXCEL EXISTANT (.XLSM / .XLSX)
+// 3. IMPORTATION EXCEL UNIVERSELLE (MODÈLE HISTORIQUE + TOUT FORMAT EXCEL/CSV)
 // ============================================================================
+let pendingWorkbook = null;
+let pendingFileName = "";
+
 function handleImportExcel(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -1057,152 +1262,15 @@ function handleImportExcel(event) {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: "array", cellDates: true });
 
-      const wsDet = workbook.Sheets["Détails Mensuels"];
-      if (!wsDet) {
-        alert("Onglet 'Détails Mensuels' introuvable dans ce fichier Excel.");
+      if (workbook.Sheets["Détails Mensuels"]) {
+        importLegacyExcelWorkbook(workbook, file.name);
+        event.target.value = "";
         return;
       }
 
-      const rowsDet = XLSX.utils.sheet_to_json(wsDet, { header: 1, defval: "" });
-      const newVehiclesMap = new Map();
-      const newMensuel = {};
-      let currentMonthIdx = -1;
-
-      for (let r = 0; r < rowsDet.length; r++) {
-        const row = rowsDet[r];
-        const colA = String(row[0] || "").trim().toUpperCase();
-        const colB = String(row[1] || "").trim();
-
-        const foundMois = MOIS.findIndex(m => m.toUpperCase() === colA);
-        if (foundMois !== -1) currentMonthIdx = foundMois;
-
-        if (currentMonthIdx !== -1 && colB !== "" && !colB.toUpperCase().startsWith("TOTAL")) {
-          let modele = colB, immat = "";
-          const dashIdx = colB.lastIndexOf("-");
-          if (dashIdx > 0) {
-            modele = colB.slice(0, dashIdx).trim().toUpperCase();
-            immat = colB.slice(dashIdx + 1).trim().toUpperCase();
-          } else {
-            immat = nettoyerImmat(colB);
-          }
-
-          const vehKey = nettoyerImmat(immat) || modele;
-          if (!newVehiclesMap.has(vehKey)) {
-            newVehiclesMap.set(vehKey, {
-              id: "veh_" + vehKey,
-              modele: modele,
-              immat: immat,
-              dateService: `${db.year}-01-01`,
-              kmInitial: 0,
-              kmTrips: {},
-              alertesConfig: [],
-              achat: 0,
-              carteGrise: 0,
-              revente: 0,
-              fraisFixes: { assurance: 0, boitier: 0, logiciel: 0 },
-              entretiens: []
-            });
-          }
-
-          const vehObj = newVehiclesMap.get(vehKey);
-          const ym = `${db.year}-${String(currentMonthIdx + 1).padStart(2, "0")}`;
-          const mKey = `${ym}_${vehObj.id}`;
-
-          newMensuel[mKey] = {
-            turo: parseFloat(row[2]) || 0,
-            ga: parseFloat(row[3]) || 0,
-            nettoyage: parseFloat(row[7]) || 0,
-            joursLoues: parseInt(row[11], 10) || 0
-          };
-        }
-      }
-
-      newVehiclesMap.forEach((veh) => {
-        const immatClean = nettoyerImmat(veh.immat);
-        const sheetName = workbook.SheetNames.find(name => {
-          const nClean = nettoyerImmat(name);
-          return name.toUpperCase().startsWith("DEP") && (nClean.includes(immatClean) || nClean === "DEP" + immatClean);
-        });
-
-        if (sheetName) {
-          const rowsDep = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, defval: "" });
-          if (rowsDep[4]) veh.fraisFixes.assurance = parseFloat(rowsDep[4][2]) || 0;
-          if (rowsDep[5]) veh.fraisFixes.boitier = parseFloat(rowsDep[5][2]) || 0;
-          if (rowsDep[6]) veh.fraisFixes.logiciel = parseFloat(rowsDep[6][2]) || 0;
-
-          for (let r = 12; r < rowsDep.length; r++) {
-            const rDep = rowsDep[r];
-            const montantEnt = parseFloat(rDep[4]) || 0;
-            if (montantEnt !== 0 || String(rDep[2] || "").trim() !== "") {
-              let dtStr = `${db.year}-01-01`;
-              if (rDep[0] instanceof Date && !isNaN(rDep[0].getTime())) {
-                dtStr = rDep[0].toISOString().slice(0, 10);
-              } else if (typeof rDep[0] === "string" && rDep[0].includes("/")) {
-                const p = rDep[0].split("/");
-                if (p.length === 3) dtStr = `${p[2].slice(0,4)}-${p[1].padStart(2,"0")}-${p[0].padStart(2,"0")}`;
-              }
-              veh.entretiens.push({
-                id: "e_" + r + "_" + Date.now(),
-                date: dtStr,
-                type: String(rDep[2] || "Entretien"),
-                desc: String(rDep[3] || ""),
-                montant: montantEnt
-              });
-            }
-          }
-        }
-      });
-
-      const wsRent = workbook.Sheets["Rentabilité Globale"];
-      if (wsRent) {
-        const rowsRent = XLSX.utils.sheet_to_json(wsRent, { header: 1, defval: "" });
-        for (let r = 0; r < rowsRent.length; r++) {
-          const labelB = String(rowsRent[r][1] || "").trim().toUpperCase();
-          if (labelB.startsWith("VÉHICULE :") || labelB.startsWith("VEHICULE :")) {
-            const vehTitre = labelB.split(":")[1] || "";
-            const vehTitreClean = nettoyerImmat(vehTitre);
-
-            let matchedVeh = null;
-            newVehiclesMap.forEach(v => {
-              if (vehTitreClean.includes(nettoyerImmat(v.immat)) && nettoyerImmat(v.immat) !== "") {
-                matchedVeh = v;
-              }
-            });
-
-            if (matchedVeh) {
-              for (let scan = r + 1; scan <= Math.min(r + 13, rowsRent.length - 1); scan++) {
-                const subLabel = String(rowsRent[scan][1] || "").toLowerCase();
-                const valC = parseFloat(rowsRent[scan][2]) || 0;
-                if (subLabel.includes("achat")) matchedVeh.achat = valC;
-                else if (subLabel.includes("carte grise")) matchedVeh.carteGrise = valC;
-                else if (subLabel.includes("revente")) matchedVeh.revente = valC;
-              }
-            }
-          }
-        }
-      }
-
-      newVehiclesMap.forEach((newV, key) => {
-        const oldV = db.vehicles.find(o => nettoyerImmat(o.immat) === key);
-        if (oldV) {
-          if (newV.achat === 0 && oldV.achat > 0) newV.achat = oldV.achat;
-          if (newV.carteGrise === 0 && oldV.carteGrise > 0) newV.carteGrise = oldV.carteGrise;
-          if (newV.revente === 0 && oldV.revente > 0) newV.revente = oldV.revente;
-          if (oldV.dateService) newV.dateService = oldV.dateService;
-          if (oldV.kmInitial) newV.kmInitial = oldV.kmInitial;
-          if (oldV.kmTrips) newV.kmTrips = oldV.kmTrips;
-          if (oldV.alertesConfig) newV.alertesConfig = oldV.alertesConfig;
-        }
-      });
-
-      db.vehicles = Array.from(newVehiclesMap.values());
-      db.mensuel = newMensuel;
-      saveDB();
-      renderAll();
-
-      const msg = `✅ ${db.vehicles.length} véhicules, leurs dépenses et leurs données mensuelles ont été importés depuis "${file.name}" !`;
-      document.getElementById("excelLog").innerText = msg;
-      alert(msg);
+      pendingWorkbook = workbook;
+      pendingFileName = file.name;
+      openExcelMapModal(workbook);
       event.target.value = "";
     } catch (err) {
       console.error(err);
@@ -1210,6 +1278,385 @@ function handleImportExcel(event) {
     }
   };
   reader.readAsArrayBuffer(file);
+}
+
+function openExcelMapModal(workbook) {
+  const sheetSel = document.getElementById("mapSheetSelect");
+  sheetSel.innerHTML = workbook.SheetNames.map(name => `<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`).join("");
+  document.getElementById("excelMapModal").classList.add("open");
+  onMapSheetChange();
+}
+
+function closeExcelMapModal() {
+  document.getElementById("excelMapModal").classList.remove("open");
+  pendingWorkbook = null;
+}
+
+function onMapSheetChange() {
+  if (!pendingWorkbook) return;
+  const sheetName = document.getElementById("mapSheetSelect").value;
+  const rows = XLSX.utils.sheet_to_json(pendingWorkbook.Sheets[sheetName], { header: 1, defval: "" });
+  const headers = (rows[0] || []).map((h, idx) => String(h || "").trim() || `Colonne ${idx + 1}`);
+
+  const joinedHeaders = headers.join(" ").toLowerCase();
+  const typeSel = document.getElementById("mapImportType");
+  if (joinedHeaders.includes("turo") || joinedHeaders.includes("getaround") || joinedHeaders.includes("mois")) {
+    typeSel.value = "mensuel";
+  } else if (joinedHeaders.includes("achat") || joinedHeaders.includes("carte grise") || joinedHeaders.includes("assurance")) {
+    typeSel.value = "vehicules";
+  } else if (joinedHeaders.includes("garage") || joinedHeaders.includes("intervention") || joinedHeaders.includes("montant")) {
+    typeSel.value = "depenses";
+  }
+
+  toggleMapFields();
+  document.getElementById("mapPreviewBox").innerText = `📄 ${Math.max(0, rows.length - 1)} lignes détectées dans "${sheetName}".`;
+}
+
+function toggleMapFields() {
+  if (!pendingWorkbook) return;
+  const sheetName = document.getElementById("mapSheetSelect").value;
+  const rows = XLSX.utils.sheet_to_json(pendingWorkbook.Sheets[sheetName], { header: 1, defval: "" });
+  const headers = (rows[0] || []).map((h, idx) => String(h || "").trim() || `Colonne ${idx + 1}`);
+  const importType = document.getElementById("mapImportType").value;
+
+  const buildOptions = (keywords, optional = true) => {
+    let bestIdx = -1;
+    headers.forEach((h, idx) => {
+      const low = h.toLowerCase();
+      if (bestIdx === -1 && keywords.some(k => low.includes(k))) bestIdx = idx;
+    });
+    let opts = optional ? `<option value="-1">-- Ignorer --</option>` : "";
+    opts += headers.map((h, idx) => `<option value="${idx}" ${idx === bestIdx ? "selected" : ""}>${escapeHTML(h)}</option>`).join("");
+    return opts;
+  };
+
+  const container = document.getElementById("mapFieldsContainer");
+  if (importType === "mensuel") {
+    container.innerHTML = `
+      <div class="form-group"><label>Mois ou Date *</label><select id="col_mois">${buildOptions(["mois", "date", "période", "periode"], false)}</select></div>
+      <div class="form-group"><label>Modèle / Véhicule *</label><select id="col_veh">${buildOptions(["véhicule", "vehicule", "modèle", "modele", "voiture"], false)}</select></div>
+      <div class="form-group"><label>Immatriculation</label><select id="col_immat">${buildOptions(["immat", "plaque", "matricule"])}</select></div>
+      <div class="form-group"><label>CA Turo (€)</label><select id="col_turo">${buildOptions(["turo"])}</select></div>
+      <div class="form-group"><label>CA Getaround (€)</label><select id="col_ga">${buildOptions(["getaround", "ga", "drivy"])}</select></div>
+      <div class="form-group"><label>CA Total (si pas de détail)</label><select id="col_ca_tot">${buildOptions(["total ca", "chiffre", "revenu", "ca"])}</select></div>
+      <div class="form-group"><label>Nettoyage (€)</label><select id="col_nett">${buildOptions(["nettoyage", "lavage"])}</select></div>
+      <div class="form-group"><label>Jours Loués</label><select id="col_jours">${buildOptions(["jours lou", "jour", "durée", "duree"])}</select></div>
+    `;
+  } else if (importType === "vehicules") {
+    container.innerHTML = `
+      <div class="form-group"><label>Modèle / Véhicule *</label><select id="col_veh">${buildOptions(["véhicule", "vehicule", "modèle", "modele", "voiture"], false)}</select></div>
+      <div class="form-group"><label>Immatriculation *</label><select id="col_immat">${buildOptions(["immat", "plaque", "matricule"], false)}</select></div>
+      <div class="form-group"><label>Date mise en service</label><select id="col_date">${buildOptions(["service", "date", "achat"])}</select></div>
+      <div class="form-group"><label>Kilométrage initial</label><select id="col_km">${buildOptions(["km", "kilom"])}</select></div>
+      <div class="form-group"><label>Prix d'achat (€)</label><select id="col_achat">${buildOptions(["achat", "prix"])}</select></div>
+      <div class="form-group"><label>Carte grise (€)</label><select id="col_cg">${buildOptions(["carte grise", "cg"])}</select></div>
+      <div class="form-group"><label>Revente estimée (€)</label><select id="col_rev">${buildOptions(["revente", "valeur"])}</select></div>
+      <div class="form-group"><label>Assurance mensuelle (€)</label><select id="col_ass">${buildOptions(["assurance"])}</select></div>
+    `;
+  } else {
+    container.innerHTML = `
+      <div class="form-group"><label>Véhicule ou Immat *</label><select id="col_veh">${buildOptions(["immat", "véhicule", "vehicule", "plaque"], false)}</select></div>
+      <div class="form-group"><label>Date dépense *</label><select id="col_date">${buildOptions(["date"], false)}</select></div>
+      <div class="form-group"><label>Montant TTC (€) *</label><select id="col_montant">${buildOptions(["montant", "prix", "coût", "cout", "ttc"], false)}</select></div>
+      <div class="form-group"><label>Type d'intervention</label><select id="col_type">${buildOptions(["type", "catégorie", "categorie"])}</select></div>
+      <div class="form-group" style="grid-column:span 2;"><label>Garage / Description</label><select id="col_desc">${buildOptions(["desc", "garage", "libellé", "libelle", "note"])}</select></div>
+    `;
+  }
+}
+
+function getOrCreateVehicle(modeleRaw, immatRaw) {
+  let modele = String(modeleRaw || "").trim().toUpperCase();
+  let immat = String(immatRaw || "").trim().toUpperCase();
+
+  if (!immat && modele.includes("-")) {
+    const idx = modele.lastIndexOf("-");
+    const possibleImmat = modele.slice(idx + 1).trim();
+    if (/\d/.test(possibleImmat)) {
+      immat = possibleImmat;
+      modele = modele.slice(0, idx).trim();
+    }
+  }
+  if (!immat) immat = nettoyerImmat(modele) || ("VEH" + Date.now());
+  if (!modele) modele = immat;
+
+  const clean = nettoyerImmat(immat);
+  let veh = db.vehicles.find(v => nettoyerImmat(v.immat) === clean);
+  if (!veh) {
+    veh = {
+      id: "veh_" + clean + "_" + Math.floor(Math.random() * 1000),
+      modele,
+      immat,
+      dateService: `${db.year}-01-01`,
+      kmInitial: 0,
+      kmTrips: {},
+      alertesConfig: [],
+      achat: 0,
+      carteGrise: 0,
+      revente: 0,
+      fraisFixes: { assurance: 0, boitier: 0, logiciel: 0 },
+      entretiens: []
+    };
+    db.vehicles.push(veh);
+  }
+  return veh;
+}
+
+function parseMonthIndexFromCell(val) {
+  if (val instanceof Date && !isNaN(val.getTime())) return val.getMonth();
+  const s = String(val || "").trim().toLowerCase();
+  const idxNom = MOIS.findIndex(m => s.startsWith(m.toLowerCase().slice(0, 4)));
+  if (idxNom !== -1) return idxNom;
+  const dt = parseDateExcelOuStr(val);
+  if (dt) return dt.getMonth();
+  const num = parseInt(s, 10);
+  if (num >= 1 && num <= 12) return num - 1;
+  return -1;
+}
+
+function executeMappedExcelImport() {
+  if (!pendingWorkbook) return;
+  const sheetName = document.getElementById("mapSheetSelect").value;
+  const importType = document.getElementById("mapImportType").value;
+  const mergeMode = document.getElementById("mapMergeMode").checked;
+  const rows = XLSX.utils.sheet_to_json(pendingWorkbook.Sheets[sheetName], { header: 1, defval: "" });
+
+  if (!mergeMode && importType !== "depenses") {
+    db.vehicles = [];
+    db.mensuel = {};
+  }
+
+  const getCol = id => {
+    const el = document.getElementById(id);
+    return el ? parseInt(el.value, 10) : -1;
+  };
+
+  let importedCount = 0;
+
+  if (importType === "mensuel") {
+    const cMois = getCol("col_mois"), cVeh = getCol("col_veh"), cImmat = getCol("col_immat");
+    const cTuro = getCol("col_turo"), cGA = getCol("col_ga"), cCATot = getCol("col_ca_tot");
+    const cNett = getCol("col_nett"), cJours = getCol("col_jours");
+
+    for (let r = 1; r < rows.length; r++) {
+      const row = rows[r];
+      const vehVal = String(row[cVeh] || "").trim();
+      if (!vehVal || vehVal.toUpperCase().startsWith("TOTAL")) continue;
+
+      const mIdx = parseMonthIndexFromCell(row[cMois]);
+      if (mIdx === -1) continue;
+
+      const veh = getOrCreateVehicle(vehVal, cImmat >= 0 ? row[cImmat] : "");
+      const ym = `${db.year}-${String(mIdx + 1).padStart(2, "0")}`;
+      const mKey = `${ym}_${veh.id}`;
+
+      const turoVal = cTuro >= 0 ? parseMontant(row[cTuro]) : (cCATot >= 0 ? parseMontant(row[cCATot]) : 0);
+      const gaVal = cGA >= 0 ? parseMontant(row[cGA]) : 0;
+
+      db.mensuel[mKey] = {
+        turo: turoVal,
+        ga: gaVal,
+        nettoyage: cNett >= 0 ? parseMontant(row[cNett]) : 0,
+        joursLoues: cJours >= 0 ? (parseInt(row[cJours], 10) || 0) : 0
+      };
+      importedCount++;
+    }
+  } else if (importType === "vehicules") {
+    const cVeh = getCol("col_veh"), cImmat = getCol("col_immat"), cDate = getCol("col_date");
+    const cKm = getCol("col_km"), cAchat = getCol("col_achat"), cCG = getCol("col_cg");
+    const cRev = getCol("col_rev"), cAss = getCol("col_ass");
+
+    for (let r = 1; r < rows.length; r++) {
+      const row = rows[r];
+      if (!row[cVeh] && !row[cImmat]) continue;
+      const veh = getOrCreateVehicle(row[cVeh], row[cImmat]);
+      if (cDate >= 0) {
+        const dt = parseDateExcelOuStr(row[cDate]);
+        if (dt) veh.dateService = dt.toISOString().slice(0, 10);
+      }
+      if (cKm >= 0) veh.kmInitial = parseMontant(row[cKm]);
+      if (cAchat >= 0) veh.achat = parseMontant(row[cAchat]);
+      if (cCG >= 0) veh.carteGrise = parseMontant(row[cCG]);
+      if (cRev >= 0) veh.revente = parseMontant(row[cRev]);
+      if (cAss >= 0) veh.fraisFixes.assurance = parseMontant(row[cAss]);
+      importedCount++;
+    }
+  } else if (importType === "depenses") {
+    const cVeh = getCol("col_veh"), cDate = getCol("col_date"), cMont = getCol("col_montant");
+    const cType = getCol("col_type"), cDesc = getCol("col_desc");
+
+    for (let r = 1; r < rows.length; r++) {
+      const row = rows[r];
+      const montant = parseMontant(row[cMont]);
+      if (!row[cVeh] || montant === 0) continue;
+
+      const rawVeh = String(row[cVeh]).trim();
+      const veh = findVehicleByImmatOrName(nettoyerImmat(rawVeh), rawVeh) || getOrCreateVehicle(rawVeh, rawVeh);
+      const dt = parseDateExcelOuStr(row[cDate]);
+      const dtStr = dt ? dt.toISOString().slice(0, 10) : `${db.year}-01-01`;
+
+      veh.entretiens.push({
+        id: "e_" + r + "_" + Date.now(),
+        date: dtStr,
+        type: cType >= 0 ? String(row[cType] || "Entretien") : "Entretien",
+        desc: cDesc >= 0 ? String(row[cDesc] || "") : "",
+        montant
+      });
+      importedCount++;
+    }
+  }
+
+  saveDB();
+  renderAll();
+  const msg = `✅ ${importedCount} lignes importées depuis "${pendingFileName}" !`;
+  const logEl = document.getElementById("excelLog");
+  if (logEl) logEl.innerText = msg;
+  closeExcelMapModal();
+  showToast(msg);
+}
+
+function importLegacyExcelWorkbook(workbook, fileName) {
+  const wsDet = workbook.Sheets["Détails Mensuels"];
+  const rowsDet = XLSX.utils.sheet_to_json(wsDet, { header: 1, defval: "" });
+  const newVehiclesMap = new Map();
+  const newMensuel = {};
+  let currentMonthIdx = -1;
+
+  for (let r = 0; r < rowsDet.length; r++) {
+    const row = rowsDet[r];
+    const colA = String(row[0] || "").trim().toUpperCase();
+    const colB = String(row[1] || "").trim();
+
+    const foundMois = MOIS.findIndex(m => m.toUpperCase() === colA);
+    if (foundMois !== -1) currentMonthIdx = foundMois;
+
+    if (currentMonthIdx !== -1 && colB !== "" && !colB.toUpperCase().startsWith("TOTAL")) {
+      let modele = colB, immat = "";
+      const dashIdx = colB.lastIndexOf("-");
+      if (dashIdx > 0) {
+        modele = colB.slice(0, dashIdx).trim().toUpperCase();
+        immat = colB.slice(dashIdx + 1).trim().toUpperCase();
+      } else {
+        immat = nettoyerImmat(colB);
+      }
+
+      const vehKey = nettoyerImmat(immat) || modele;
+      if (!newVehiclesMap.has(vehKey)) {
+        newVehiclesMap.set(vehKey, {
+          id: "veh_" + vehKey,
+          modele: modele,
+          immat: immat,
+          dateService: `${db.year}-01-01`,
+          kmInitial: 0,
+          kmTrips: {},
+          alertesConfig: [],
+          achat: 0,
+          carteGrise: 0,
+          revente: 0,
+          fraisFixes: { assurance: 0, boitier: 0, logiciel: 0 },
+          entretiens: []
+        });
+      }
+
+      const vehObj = newVehiclesMap.get(vehKey);
+      const ym = `${db.year}-${String(currentMonthIdx + 1).padStart(2, "0")}`;
+      const mKey = `${ym}_${vehObj.id}`;
+
+      newMensuel[mKey] = {
+        turo: parseFloat(row[2]) || 0,
+        ga: parseFloat(row[3]) || 0,
+        nettoyage: parseFloat(row[7]) || 0,
+        joursLoues: parseInt(row[11], 10) || 0
+      };
+    }
+  }
+
+  newVehiclesMap.forEach((veh) => {
+    const immatClean = nettoyerImmat(veh.immat);
+    const sheetName = workbook.SheetNames.find(name => {
+      const nClean = nettoyerImmat(name);
+      return name.toUpperCase().startsWith("DEP") && (nClean.includes(immatClean) || nClean === "DEP" + immatClean);
+    });
+
+    if (sheetName) {
+      const rowsDep = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, defval: "" });
+      if (rowsDep[4]) veh.fraisFixes.assurance = parseFloat(rowsDep[4][2]) || 0;
+      if (rowsDep[5]) veh.fraisFixes.boitier = parseFloat(rowsDep[5][2]) || 0;
+      if (rowsDep[6]) veh.fraisFixes.logiciel = parseFloat(rowsDep[6][2]) || 0;
+
+      for (let r = 12; r < rowsDep.length; r++) {
+        const rDep = rowsDep[r];
+        const montantEnt = parseFloat(rDep[4]) || 0;
+        if (montantEnt !== 0 || String(rDep[2] || "").trim() !== "") {
+          let dtStr = `${db.year}-01-01`;
+          if (rDep[0] instanceof Date && !isNaN(rDep[0].getTime())) {
+            dtStr = rDep[0].toISOString().slice(0, 10);
+          } else if (typeof rDep[0] === "string" && rDep[0].includes("/")) {
+            const p = rDep[0].split("/");
+            if (p.length === 3) dtStr = `${p[2].slice(0,4)}-${p[1].padStart(2,"0")}-${p[0].padStart(2,"0")}`;
+          }
+          veh.entretiens.push({
+            id: "e_" + r + "_" + Date.now(),
+            date: dtStr,
+            type: String(rDep[2] || "Entretien"),
+            desc: String(rDep[3] || ""),
+            montant: montantEnt
+          });
+        }
+      }
+    }
+  });
+
+  const wsRent = workbook.Sheets["Rentabilité Globale"];
+  if (wsRent) {
+    const rowsRent = XLSX.utils.sheet_to_json(wsRent, { header: 1, defval: "" });
+    for (let r = 0; r < rowsRent.length; r++) {
+      const labelB = String(rowsRent[r][1] || "").trim().toUpperCase();
+      if (labelB.startsWith("VÉHICULE :") || labelB.startsWith("VEHICULE :")) {
+        const vehTitre = labelB.split(":")[1] || "";
+        const vehTitreClean = nettoyerImmat(vehTitre);
+
+        let matchedVeh = null;
+        newVehiclesMap.forEach(v => {
+          if (vehTitreClean.includes(nettoyerImmat(v.immat)) && nettoyerImmat(v.immat) !== "") {
+            matchedVeh = v;
+          }
+        });
+
+        if (matchedVeh) {
+          for (let scan = r + 1; scan <= Math.min(r + 13, rowsRent.length - 1); scan++) {
+            const subLabel = String(rowsRent[scan][1] || "").toLowerCase();
+            const valC = parseFloat(rowsRent[scan][2]) || 0;
+            if (subLabel.includes("achat")) matchedVeh.achat = valC;
+            else if (subLabel.includes("carte grise")) matchedVeh.carteGrise = valC;
+            else if (subLabel.includes("revente")) matchedVeh.revente = valC;
+          }
+        }
+      }
+    }
+  }
+
+  newVehiclesMap.forEach((newV, key) => {
+    const oldV = db.vehicles.find(o => nettoyerImmat(o.immat) === key);
+    if (oldV) {
+      if (newV.achat === 0 && oldV.achat > 0) newV.achat = oldV.achat;
+      if (newV.carteGrise === 0 && oldV.carteGrise > 0) newV.carteGrise = oldV.carteGrise;
+      if (newV.revente === 0 && oldV.revente > 0) newV.revente = oldV.revente;
+      if (oldV.dateService) newV.dateService = oldV.dateService;
+      if (oldV.kmInitial) newV.kmInitial = oldV.kmInitial;
+      if (oldV.kmTrips) newV.kmTrips = oldV.kmTrips;
+      if (oldV.alertesConfig) newV.alertesConfig = oldV.alertesConfig;
+    }
+  });
+
+  db.vehicles = Array.from(newVehiclesMap.values());
+  db.mensuel = newMensuel;
+  saveDB();
+  renderAll();
+
+  const msg = `✅ ${db.vehicles.length} véhicules importés depuis "${fileName}" !`;
+  const logEl = document.getElementById("excelLog");
+  if (logEl) logEl.innerText = msg;
+  showToast(msg);
 }
 
 // ============================================================================
@@ -1221,17 +1668,17 @@ function toggleMobileMenu() {
 }
 
 function goDashboard() {
-  const dashBtn = document.querySelector(".nav-btn");
-  showTab("dashboard", dashBtn);
+  showTab("dashboard");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function showTab(tabId, btn) {
   if (tabId === "admin" && !isCurrentUserAdmin) return;
   document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
-  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".nav-btn, .m-nav-item").forEach(b => {
+    b.classList.toggle("active", b.dataset.tab === tabId);
+  });
   document.getElementById(tabId).classList.add("active");
-  if (btn) btn.classList.add("active");
   document.getElementById("sidebar").classList.remove("mobile-open");
   if (tabId === "admin") loadAdminUsers();
   else renderAll();
@@ -1244,8 +1691,10 @@ function changeYear(y) {
 }
 
 function renderAll() {
+  initDynamicSelectors();
   document.getElementById("yearSelect").value = String(db.year);
   renderDashboard();
+  populateDetailFilters();
   renderDetails();
   populateDepSelect();
   renderDepenses();
@@ -1254,11 +1703,14 @@ function renderAll() {
 
 function renderAlerts() {
   const box = document.getElementById("dashAlerts");
-  if (!box) return;
+  const badge = document.getElementById("navAlertBadge");
   let html = "";
+  let alertCount = 0;
+
   db.vehicles.forEach(v => {
     getAlertesVehicule(v).forEach(a => {
       if (a.urgent || a.proche) {
+        alertCount++;
         const cls = a.urgent ? "alert-danger" : "alert-warn";
         const icon = a.urgent ? "🚨 ENTRETIEN DÉPASSÉ" : "⚠️ ENTRETIEN PROCHE";
         const detailKm = a.kmRestant !== null ? `${a.kmRestant} km restants` : "";
@@ -1268,11 +1720,23 @@ function renderAlerts() {
       }
     });
   });
-  box.innerHTML = html;
+
+  if (box) box.innerHTML = html;
+  if (badge) {
+    badge.style.display = alertCount > 0 ? "inline-block" : "none";
+    badge.innerText = String(alertCount);
+  }
 }
 
 function renderDashboard() {
   const year = db.year;
+  const hasVehicles = db.vehicles.length > 0;
+
+  const obBox = document.getElementById("onboardingBox");
+  const mainContent = document.getElementById("dashMainContent");
+  if (obBox) obBox.style.display = hasVehicles ? "none" : "block";
+  if (mainContent) mainContent.style.display = hasVehicles ? "block" : "none";
+
   let totCA = 0, totChg = 0, totBen = 0, totJours = 0, totDispo = 0;
   let totTuroYear = 0, totGAYear = 0;
 
@@ -1307,13 +1771,35 @@ function renderDashboard() {
   }
 
   const avgOcc = totDispo > 0 ? totJours / totDispo : 0;
+  const moyCAMois = totCA / 12;
+  const moyBenVeh = hasVehicles ? (totBen / db.vehicles.length) : 0;
 
   document.getElementById("dashKpis").innerHTML = `
-    <div class="kpi-card"><div class="label">Véhicules Actifs</div><div class="value">${db.vehicles.length}</div></div>
-    <div class="kpi-card"><div class="label">CA Total (${year})</div><div class="value">${fmtEur(totCA)}</div></div>
-    <div class="kpi-card"><div class="label">Charges Totales (${year})</div><div class="value">${fmtEur(totChg)}</div></div>
-    <div class="kpi-card highlight"><div class="label">Bénéfice Net (${year})</div><div class="value">${fmtEur(totBen)}</div></div>
-    <div class="kpi-card"><div class="label">Taux d'Occupation Moyen</div><div class="value">${fmtPct(avgOcc)}</div></div>
+    <div class="kpi-card">
+      <div class="label">Véhicules Actifs</div>
+      <div class="value">${db.vehicles.length}</div>
+      <div class="sub-kpi">${totJours} jours loués sur ${year}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">CA Total (${year})</div>
+      <div class="value">${fmtEur(totCA)}</div>
+      <div class="sub-kpi">Moy. ${fmtEur(moyCAMois)} / mois</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Charges Totales (${year})</div>
+      <div class="value">${fmtEur(totChg)}</div>
+      <div class="sub-kpi">Moy. ${fmtEur(totChg / 12)} / mois</div>
+    </div>
+    <div class="kpi-card highlight">
+      <div class="label">Bénéfice Net (${year})</div>
+      <div class="value">${fmtEur(totBen)}</div>
+      <div class="sub-kpi">Soit ${fmtEur(moyBenVeh)} / véhicule</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Taux d'Occupation</div>
+      <div class="value">${fmtPct(avgOcc)}</div>
+      <div class="sub-kpi">${totJours} / ${totDispo} jours dispo</div>
+    </div>
   `;
 
   document.getElementById("syntheseTable").innerHTML = `
@@ -1328,7 +1814,7 @@ function renderDashboard() {
   `;
 
   renderAlerts();
-  renderCharts(dataCA, dataChg, dataBen, totTuroYear, totGAYear);
+  if (hasVehicles) renderCharts(dataCA, dataChg, dataBen, totTuroYear, totGAYear);
 }
 
 const piePercentagePlugin = {
@@ -1446,30 +1932,56 @@ function renderCharts(dataCA, dataChg, dataBen, totTuro, totGA) {
 }
 
 // ============================================================================
-// 5. DÉTAILS MENSUELS
+// 5. DÉTAILS MENSUELS (AVEC FILTRES & BARRE D'OCCUPATION COMPACTE)
 // ============================================================================
+function populateDetailFilters() {
+  const vSel = document.getElementById("filterDetailVeh");
+  if (!vSel) return;
+  const cur = vSel.value;
+  vSel.innerHTML = `<option value="all">Toute la flotte (${db.vehicles.length})</option>` +
+    db.vehicles.map(v => `<option value="${v.id}">${escapeHTML(v.modele)} - ${escapeHTML(v.immat)}</option>`).join("");
+  if (cur && (cur === "all" || db.vehicles.some(v => v.id === cur))) vSel.value = cur;
+}
+
+function renderOccupationBar(jl, jd, taux) {
+  const pct = Math.min(100, Math.round(taux * 100));
+  const color = pct >= 70 ? "#16a34a" : (pct >= 40 ? "#d97706" : "#dc2626");
+  return `
+    <div class="occ-cell">
+      <div class="occ-text"><span>${jl}/${jd} j</span><span style="color:${color};">${fmtPct(taux)}</span></div>
+      <div class="occ-track"><div class="occ-fill" style="width:${pct}%; background:${color};"></div></div>
+    </div>
+  `;
+}
+
 function renderDetails() {
   const year = db.year;
   if (db.vehicles.length === 0) {
-    document.getElementById("detailsTable").innerHTML = `<tbody><tr><td style="text-align:center; padding:30px;">Aucun véhicule chargé. Cliquez sur <b>« Importer mon Excel (.xlsm) »</b> dans le menu de gauche ou ajoutez un véhicule.</td></tr></tbody>`;
+    document.getElementById("detailsTable").innerHTML = `<tbody><tr><td style="text-align:center; padding:30px;">Aucun véhicule chargé. Cliquez sur <b>« Importer Excel / CSV »</b> ou ajoutez un véhicule.</td></tr></tbody>`;
     return;
   }
+
+  const filterMonth = document.getElementById("filterDetailMonth")?.value || "all";
+  const filterVeh = document.getElementById("filterDetailVeh")?.value || "all";
+  const vehiclesList = filterVeh === "all" ? db.vehicles : db.vehicles.filter(v => v.id === filterVeh);
 
   let html = `
     <thead>
       <tr>
         <th>Mois</th><th>Véhicule</th><th>CA Turo</th><th>CA Getaround</th><th>Total CA</th>
         <th>Assurance</th><th>Entretien</th><th>Nettoyage</th><th>Boîtier/Log.</th>
-        <th>Total Charges</th><th>Bénéfice Net</th><th>Jours Loués</th><th>Jours Dispo</th><th>Taux Occ.</th>
+        <th>Total Charges</th><th>Bénéfice Net</th><th>Occupation</th>
       </tr>
     </thead><tbody>
   `;
 
   for (let m = 0; m < 12; m++) {
-    html += `<tr class="month-header"><td colspan="14">${MOIS[m].toUpperCase()} ${year}</td></tr>`;
+    if (filterMonth !== "all" && Number(filterMonth) !== m) continue;
+
+    html += `<tr class="month-header"><td colspan="12">${MOIS[m].toUpperCase()} ${year}</td></tr>`;
     let sTuro = 0, sGA = 0, sCA = 0, sAss = 0, sEnt = 0, sNet = 0, sBoi = 0, sChg = 0, sBen = 0, sJL = 0, sJD = 0;
 
-    db.vehicles.forEach(v => {
+    vehiclesList.forEach(v => {
       const l = getLigneMensuelle(v, year, m);
       sTuro += l.caTuro; sGA += l.caGA; sCA += l.caTotal;
       sAss += l.assurance; sEnt += l.entretien; sNet += l.nettoyage; sBoi += l.boitierLogiciel;
@@ -1490,9 +2002,7 @@ function renderDetails() {
           <td>${fmtEur(l.boitierLogiciel)}</td>
           <td>${fmtEur(l.chargesTotal)}</td>
           <td><b>${fmtEur(l.benefice)}</b></td>
-          <td>${l.joursLoues}</td>
-          <td>${l.joursDispo}</td>
-          <td>${fmtPct(l.tauxOcc)}</td>
+          <td>${renderOccupationBar(l.joursLoues, l.joursDispo, l.tauxOcc)}</td>
         </tr>
       `;
     });
@@ -1503,7 +2013,7 @@ function renderDetails() {
         <td></td><td>Total ${MOIS[m]}</td>
         <td>${fmtEur(sTuro)}</td><td>${fmtEur(sGA)}</td><td>${fmtEur(sCA)}</td>
         <td>${fmtEur(sAss)}</td><td>${fmtEur(sEnt)}</td><td>${fmtEur(sNet)}</td><td>${fmtEur(sBoi)}</td>
-        <td>${fmtEur(sChg)}</td><td>${fmtEur(sBen)}</td><td>${sJL}</td><td>${sJD}</td><td>${fmtPct(totOcc)}</td>
+        <td>${fmtEur(sChg)}</td><td>${fmtEur(sBen)}</td><td>${renderOccupationBar(sJL, sJD, totOcc)}</td>
       </tr>
     `;
   }
@@ -1512,10 +2022,20 @@ function renderDetails() {
 }
 
 function updateNettoyage(key, val) {
+  const scrollBox = document.getElementById("detailsScrollBox");
+  const prevTop = scrollBox ? scrollBox.scrollTop : 0;
+  const prevLeft = scrollBox ? scrollBox.scrollLeft : 0;
+
   if (!db.mensuel[key]) db.mensuel[key] = { turo: 0, ga: 0, nettoyage: 0, joursLoues: 0 };
   db.mensuel[key].nettoyage = parseFloat(val) || 0;
   saveDB();
   renderAll();
+
+  if (scrollBox) {
+    scrollBox.scrollTop = prevTop;
+    scrollBox.scrollLeft = prevLeft;
+  }
+  showToast("✅ Nettoyage enregistré");
 }
 
 // ============================================================================
@@ -1604,11 +2124,18 @@ function renderDepenses() {
     </div>
 
     <div class="card">
-      <h3>3. Suivi Entretien & Dépenses Ponctuelles (Modifiables)</h3>
+      <h3>3. Suivi Entretien & Dépenses Ponctuelles</h3>
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-        <input type="date" id="entDate" value="${db.year}-01-15" style="padding:8px; border:1px solid var(--border); border-radius:6px;">
-        <input type="text" id="entType" placeholder="Type (ex: Entretien, Pneus)" style="padding:8px; border:1px solid var(--border); border-radius:6px;">
-        <input type="text" id="entDesc" placeholder="Garage / Description" style="padding:8px; border:1px solid var(--border); border-radius:6px; flex:1;">
+        <input type="date" id="entDate" value="${new Date().toISOString().slice(0,10)}" style="padding:8px; border:1px solid var(--border); border-radius:6px;">
+        <select id="entType" style="padding:8px; border:1px solid var(--border); border-radius:6px; font-weight:600;">
+          <option value="Vidange / Révision">🛢️ Vidange / Révision</option>
+          <option value="Pneumatiques">🛞 Pneumatiques</option>
+          <option value="Réparation mécanique">🛠️ Réparation mécanique</option>
+          <option value="Carrosserie / Vitrage">🚘 Carrosserie / Vitrage</option>
+          <option value="Contrôle Technique">📋 Contrôle Technique</option>
+          <option value="Carburant / Divers">⛽ Carburant / Divers</option>
+        </select>
+        <input type="text" id="entDesc" placeholder="Garage / Description" style="padding:8px; border:1px solid var(--border); border-radius:6px; flex:1; min-width:160px;">
         <input type="number" id="entMontant" placeholder="Montant €" step="0.01" style="padding:8px; border:1px solid var(--border); border-radius:6px; width:120px;">
         <button class="btn btn-success" onclick="addEntretien('${veh.id}')">➕ Ajouter dépense</button>
       </div>
@@ -1619,7 +2146,7 @@ function renderDepenses() {
             ${(veh.entretiens || []).map(e => `
               <tr>
                 <td><input type="date" value="${e.date}" onchange="editEntretien('${veh.id}', '${e.id}', 'date', this.value)" style="padding:4px; border:1px solid var(--border); border-radius:4px;"></td>
-                <td><input type="text" value="${escapeHTML(e.type)}" onchange="editEntretien('${veh.id}', '${e.id}', 'type', this.value)" style="padding:4px; border:1px solid var(--border); border-radius:4px; width:140px;"></td>
+                <td><input type="text" value="${escapeHTML(e.type)}" onchange="editEntretien('${veh.id}', '${e.id}', 'type', this.value)" style="padding:4px; border:1px solid var(--border); border-radius:4px; width:155px;"></td>
                 <td><input type="text" value="${escapeHTML(e.desc)}" onchange="editEntretien('${veh.id}', '${e.id}', 'desc', this.value)" style="padding:4px; border:1px solid var(--border); border-radius:4px; width:100%;"></td>
                 <td><input class="cell-input" type="number" step="0.01" value="${e.montant}" onchange="editEntretien('${veh.id}', '${e.id}', 'montant', this.value)"></td>
                 <td><button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="delEntretien('${veh.id}', '${e.id}')">Suppr.</button></td>
@@ -1634,17 +2161,17 @@ function renderDepenses() {
 
 function updateDateService(vehId, val) {
   const v = db.vehicles.find(x => x.id === vehId);
-  if (v) { v.dateService = val; saveDB(); renderAll(); }
+  if (v) { v.dateService = val; saveDB(); renderAll(); showToast("✅ Date mise à jour"); }
 }
 
 function updateKmInitial(vehId, val) {
   const v = db.vehicles.find(x => x.id === vehId);
-  if (v) { v.kmInitial = parseFloat(val) || 0; saveDB(); renderAll(); }
+  if (v) { v.kmInitial = parseFloat(val) || 0; saveDB(); renderAll(); showToast("✅ Compteur mis à jour"); }
 }
 
 function updateFixe(vehId, field, val) {
   const v = db.vehicles.find(x => x.id === vehId);
-  if (v) { v.fraisFixes[field] = parseFloat(val) || 0; saveDB(); renderAll(); }
+  if (v) { v.fraisFixes[field] = parseFloat(val) || 0; saveDB(); renderAll(); showToast("✅ Coût fixe enregistré"); }
 }
 
 function addAlerteConfig(vehId) {
@@ -1659,6 +2186,7 @@ function addAlerteConfig(vehId) {
   v.alertesConfig.push({ id: "al_" + Date.now(), nom, intervalleKm, intervalleMois, dernierKm, derniereDate });
   saveDB();
   renderAll();
+  showToast("🔔 Alerte créée");
 }
 
 function resetAlerte(vehId, alId) {
@@ -1669,6 +2197,7 @@ function resetAlerte(vehId, alId) {
     al.derniereDate = new Date().toISOString().slice(0, 10);
     saveDB();
     renderAll();
+    showToast("✅ Alerte réinitialisée");
   }
 }
 
@@ -1689,6 +2218,7 @@ function addEntretien(vehId) {
   v.entretiens.push({ id: "e_" + Date.now(), date, type, desc, montant });
   saveDB();
   renderAll();
+  showToast("✅ Dépense ajoutée");
 }
 
 function editEntretien(vehId, entId, field, val) {
@@ -1700,6 +2230,7 @@ function editEntretien(vehId, entId, field, val) {
   renderDashboard();
   renderDetails();
   renderRentabilite();
+  showToast("✅ Dépense modifiée");
 }
 
 function delEntretien(vehId, entId) {
@@ -1707,6 +2238,66 @@ function delEntretien(vehId, entId) {
   v.entretiens = v.entretiens.filter(e => e.id !== entId);
   saveDB();
   renderAll();
+}
+
+// ============================================================================
+// 6B. MODAL SAISIE RAPIDE DÉPENSE / LAVAGE (MOBILE & TERRAIN)
+// ============================================================================
+function openQuickExpenseModal() {
+  if (db.vehicles.length === 0) {
+    alert("Ajoutez d'abord un véhicule à votre flotte.");
+    openAddModal();
+    return;
+  }
+  const sel = document.getElementById("qeVehSelect");
+  sel.innerHTML = db.vehicles.map(v => `<option value="${v.id}">${escapeHTML(v.modele)} (${escapeHTML(v.immat)})</option>`).join("");
+  document.getElementById("qeDate").value = new Date().toISOString().slice(0, 10);
+  document.getElementById("qeMontant").value = "";
+  document.getElementById("qeDesc").value = "";
+  document.getElementById("qeCatSelect").value = "nettoyage";
+  onQuickCatChange();
+  document.getElementById("quickExpenseModal").classList.add("open");
+}
+
+function closeQuickExpenseModal() {
+  document.getElementById("quickExpenseModal").classList.remove("open");
+}
+
+function onQuickCatChange() {
+  const cat = document.getElementById("qeCatSelect").value;
+  document.getElementById("qeDescGroup").style.display = (cat === "nettoyage") ? "none" : "block";
+}
+
+function saveQuickExpense() {
+  const vehId = document.getElementById("qeVehSelect").value;
+  const cat = document.getElementById("qeCatSelect").value;
+  const dateStr = document.getElementById("qeDate").value || new Date().toISOString().slice(0, 10);
+  const montant = parseFloat(document.getElementById("qeMontant").value) || 0;
+  const desc = document.getElementById("qeDesc").value.trim();
+
+  if (montant <= 0) return alert("Veuillez saisir un montant valide.");
+  const veh = db.vehicles.find(v => v.id === vehId);
+  if (!veh) return;
+
+  if (cat === "nettoyage") {
+    const ym = dateStr.slice(0, 7);
+    const key = `${ym}_${veh.id}`;
+    if (!db.mensuel[key]) db.mensuel[key] = { turo: 0, ga: 0, nettoyage: 0, joursLoues: 0 };
+    db.mensuel[key].nettoyage = (Number(db.mensuel[key].nettoyage) || 0) + montant;
+  } else {
+    veh.entretiens.push({
+      id: "e_" + Date.now(),
+      date: dateStr,
+      type: cat,
+      desc: desc || "Saisie rapide",
+      montant
+    });
+  }
+
+  saveDB();
+  closeQuickExpenseModal();
+  renderAll();
+  showToast(`✅ ${fmtEur(montant)} enregistré sur ${veh.modele}`);
 }
 
 // ============================================================================
@@ -1791,7 +2382,7 @@ function renderRentabilite() {
 
 function updateFixedAsset(vehId, field, val) {
   const v = db.vehicles.find(x => x.id === vehId);
-  if (v) { v[field] = parseFloat(val) || 0; saveDB(); renderRentabilite(); }
+  if (v) { v[field] = parseFloat(val) || 0; saveDB(); renderRentabilite(); showToast("✅ Valeur figée enregistrée"); }
 }
 
 // ============================================================================
@@ -1803,7 +2394,7 @@ function closeAddModal() { document.getElementById("addModal").classList.remove(
 function saveNewVehicle() {
   const modele = document.getElementById("newModele").value.trim().toUpperCase();
   const immat = document.getElementById("newImmat").value.trim().toUpperCase();
-  const dateService = document.getElementById("newDate").value || "2026-01-01";
+  const dateService = document.getElementById("newDate").value || `${db.year}-01-01`;
   const kmInitial = parseFloat(document.getElementById("newKm").value) || 0;
   const achat = parseFloat(document.getElementById("newAchat").value) || 0;
   const carteGrise = parseFloat(document.getElementById("newCG").value) || 0;
@@ -1821,6 +2412,7 @@ function saveNewVehicle() {
   saveDB();
   closeAddModal();
   renderAll();
+  showToast(`✅ ${modele} ajouté à la flotte`);
 }
 
 function deleteVehicle(vehId) {
@@ -1833,6 +2425,7 @@ function deleteVehicle(vehId) {
   });
   saveDB();
   renderAll();
+  showToast("🗑️ Véhicule supprimé");
 }
 
 // ============================================================================
@@ -1892,7 +2485,7 @@ function lireFichierTableau(file, callback) {
     let rows = [];
     if (isExcel) {
       if (typeof XLSX === "undefined") {
-        alert("Erreur : Lecteur Excel non chargé (vérifiez votre connexion internet).");
+        alert("Erreur : Lecteur Excel non chargé.");
         return;
       }
       const data = new Uint8Array(e.target.result);
@@ -1963,7 +2556,8 @@ function handleImportTuro(event) {
     }
     saveDB();
     renderAll();
-    document.getElementById("turoLog").innerText = `✅ ${count} réservations Turo (${file.name}) importées.`;
+    document.getElementById("turoLog").innerText = `✅ ${count} réservations Turo importées.`;
+    showToast(`✅ ${count} réservations Turo importées`);
     event.target.value = "";
   });
 }
@@ -2021,7 +2615,8 @@ function handleImportGetaround(event) {
     }
     saveDB();
     renderAll();
-    document.getElementById("gaLog").innerText = `✅ ${count} lignes Getaround (${file.name}) importées.`;
+    document.getElementById("gaLog").innerText = `✅ ${count} lignes Getaround importées.`;
+    showToast(`✅ ${count} lignes Getaround importées`);
     event.target.value = "";
   });
 }
@@ -2048,7 +2643,7 @@ function restoreJSON(event) {
       db = JSON.parse(e.target.result);
       saveDB();
       renderAll();
-      alert("Base de données restaurée avec succès !");
+      showToast("✅ Base restaurée avec succès");
     } catch (err) {
       alert("Fichier JSON invalide.");
     }
@@ -2072,30 +2667,6 @@ function exportCSV() {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-
-function scrollDetailsX(delta) {
-  const box = document.getElementById("detailsScrollBox");
-  if (!box) return;
-  if (Math.abs(delta) >= 9000) {
-    box.scrollTo({ left: delta < 0 ? 0 : box.scrollWidth, behavior: "smooth" });
-  } else {
-    box.scrollBy({ left: delta, behavior: "smooth" });
-  }
-}
-
-document.addEventListener("keydown", function(e) {
-  const detSection = document.getElementById("details");
-  if (!detSection || !detSection.classList.contains("active")) return;
-  const tag = (document.activeElement && document.activeElement.tagName) || "";
-  if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
-  if (e.key === "ArrowRight") {
-    e.preventDefault();
-    scrollDetailsX(260);
-  } else if (e.key === "ArrowLeft") {
-    e.preventDefault();
-    scrollDetailsX(-260);
-  }
-});
 
 if (!sb) {
   setCloudStatus("💻 Mode local (Supabase non configuré)");
